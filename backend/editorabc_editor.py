@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class ModifyAbc(ABC):
+class EditorAbc(ABC):
 
     @abstractmethod
     def add(self):
@@ -32,5 +32,32 @@ class ModifyAbc(ABC):
         pass
 
     @abstractmethod
+    def clear(self):
+        pass
+
+
+class Editor(EditorAbc):
+
+    def add(self):
+        pass
+
+    def remove(self):
+        pass
+
+    def move(self):
+        pass
+
+    def rotate(self):
+        pass
+
+    def mirror(self):
+        pass
+
+    def scale(self):
+        pass
+
+    def fill(self):
+        pass
+
     def clear(self):
         pass
