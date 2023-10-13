@@ -4,15 +4,7 @@ from abc import ABC, abstractmethod
 class EditorAbc(ABC):
 
     @abstractmethod
-    def add(self):
-        pass
-
-    @abstractmethod
-    def remove(self):
-        pass
-
-    @abstractmethod
-    def move(self):
+    def move(self, x, y, delta_x, delta_y):
         pass
 
     @abstractmethod
@@ -38,26 +30,23 @@ class EditorAbc(ABC):
 
 class Editor(EditorAbc):
 
-    def add(self):
-        pass
-
-    def remove(self):
-        pass
-
-    def move(self):
-        pass
+    def move(self, x, y, delta_x, delta_y):
+        x += delta_x
+        y += delta_y
+        print("Editor is moving things")
+        return x, y
 
     def rotate(self):
-        pass
+        print("Editor is rotating things")
 
     def mirror(self):
-        pass
+        print("Editor is mirroring things")
 
     def scale(self):
-        pass
+        print("Editor is scaling things")
 
     def fill(self):
-        pass
+        print("Editor is filling things")
 
     def clear(self):
-        pass
+        print("Editor is clearing things")
