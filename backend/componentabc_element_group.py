@@ -14,16 +14,18 @@ class ComponentAbc(ABC):
 
 class Leaf(ComponentAbc):
 
-    def __init__(self, editor: EditorAbc):
+    def __init__(self, transformer: GeneralTransformer):
         self.x = 1
         self.y = 1
         self.name = ""
         self.symbol = ""
         self.symbol_color = ""
         self.background_color = ""
-        self.editor = editor
+        self.editor = transformer
 
     def move(self, delta_x, delta_y):
+        editor.set_formatter(LowercaseFormatter())
+        self.editor.set_editor(MoveTransformer())
         self.x, self.y = self.editor.move(self.x, self.y, delta_x, delta_y)
 
 
