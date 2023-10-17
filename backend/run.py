@@ -1,14 +1,34 @@
-from backend.componentabc_element_group import Leaf, Composite
-from backend.editorabc_editor import Editor
+from backend.componentabc_element_group import Element, Group
+from backend.transformer import *
 
-editor = Editor()
-element = Leaf(editor)
-element.move(2, 2)
+# -----------------------------------------------
+print("LEAF TEST:")
 
-print("After Run", element.x, element.y)
+t1 = CartesianTransformer()
+t2 = PolarTransformer()
 
-elements = [Leaf(editor), Leaf(editor)]
-group = Composite(editor)
+t1.move(3, 4, 2, 2)
+t2.scale()
+
+
+element_1 = Element(3, 4, transformer=t1)
+element_1.move(2, 2)
+print("After Run", element_1.x, element_1.y)
+
+element_1.set_transformer(transformer=t2)
+element_1.move(2, 45)
+print("After Run", element_1.x, element_1.y)
+element_1.rotate()
+element_1.mirror()
+element_1.scale()
+element_1.fill()
+
+# -----------------------------------------------
+print("GROUP TEST:")
+
+elements = [Element(1, 1)] * 10
+group = Group(transformer=t1)
 for element in elements:
     group.add(element)
+
 group.move(2, 2)
