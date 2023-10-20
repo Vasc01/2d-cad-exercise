@@ -1,90 +1,110 @@
 from abc import ABC, abstractmethod
-from cmath import cos
-from math import sin
+
+from math import sin, cos, radians
+import numpy as np
+
+# TODO: Use the Google docstring format to document classes, methods and functions
 
 
 class TransformerAbc(ABC):
 
-    """
-    from wikipedia.org
-    B
-    Barycentric coordinate system
-    Bipolar coordinates
-    E
-    Elliptic coordinate system
-    P
-    Parabolic coordinate system
-    Polar coordinate system
-    R
-    Rectangular coordinate system
-    """
-
-    @staticmethod
     @abstractmethod
-    def move(*args):
+    def move(self, *args):
         pass
 
-    @staticmethod
     @abstractmethod
-    def rotate(*args):
+    def rotate(self, *args):
         pass
 
-    @staticmethod
     @abstractmethod
-    def mirror(*args):
+    def mirror(self, *args):
         pass
 
-    @staticmethod
     @abstractmethod
-    def scale(*args):
+    def scale(self, *args):
         pass
 
 
 class CartesianTransformer(TransformerAbc):
+    """
+    use of homogeneous transformation rules
+    """
 
-    @staticmethod
-    def move(x, y, delta_x, delta_y):
-        x += delta_x
-        y += delta_y
-        print("CartesianTransformer is moving things")
-        return x, y
+    def __init__(self):
+        self.reference_x = 0
+        self.reference_y = 0
 
-    @staticmethod
-    def rotate():
-        print("CartesianTransformer is rotating things")
-        return None
+    def set_reference(self, x, y):
+        self.reference_x = x
+        self.reference_y = y
+        return self
 
-    @staticmethod
-    def mirror():
-        print("CartesianTransformer is mirroring things")
-        return None
+    def transform(self, x, y, matrix):
 
-    @staticmethod
-    def scale():
-        print("CartesianTransformer is scaling things")
-        return None
+        transformation_matrix_np = np.array(matrix)
+        old_coordinates = np.array([x, y, 1])
+        reference_coordinates = np.array([self.reference_x, self.reference_y, 0])
+        old_coordinates_adjusted = old_coordinates - reference_coordinates
 
+        transformation_result = (transformation_matrix_np @ old_coordinates_adjusted) + reference_coordinates
+        new_x, new_y, rest = transformation_result
 
-class PolarTransformer(TransformerAbc):
+        return new_x, new_y
 
-    @staticmethod
-    def move(x, y, r, angle):
-        x = (x + r) * cos(angle)
-        y = (y + r) * sin(angle)
-        print("PolarTransformer is moving things")
-        return x, y
+    def move(self, x, y, delta_x, delta_y):
+        """
+        relative movement by delta value
+        direction determined by positive/negative value
+        """
+        translation_matrix = [[1, 0, delta_x],
+                              [0, 1, delta_y],
+                              [0, 0, 1]]
 
-    @staticmethod
-    def rotate():
-        print("PolarTransformer is rotating things")
-        return None
+        return self.transform(x, y, translation_matrix)
 
-    @staticmethod
-    def mirror():
-        print("PolarTransformer is mirroring things")
-        return None
+    def rotate(self, x, y, theta):
+        """
+        theta in deg
+        counterclockwise for positive values of theta
+        """
+        c = np.cos(radians(theta))
+        s = np.sin(radians(theta))
+        rotation_matrix = [[c, -s, 0],
+                           [s,  c, 0],
+                           [0, 0, 1]]
 
-    @staticmethod
-    def scale():
-        print("PolarTransformer is scaling things")
-        return None
+        return self.transform(x, y, rotation_matrix)
+
+    def mirror(self, x, y, axis):
+
+        mirror_matrix_center = [[-1, 0, 0],
+                                [0, -1, 0],
+                                [0, 0, 1]]
+
+        mirror_matrix_x = [[1,  0, 0],
+                           [0, -1, 0],
+                           [0, 0, 1]]
+
+        mirror_matrix_y = [[-1, 0, 0],
+                           [0,  1, 0],
+                           [0, 0, 1]]
+
+        if axis == "xy":
+            return self.transform(x, y, mirror_matrix_center)
+
+        elif axis == "x":
+            return self.transform(x, y, mirror_matrix_x)
+
+        elif axis == "y":
+            return self.transform(x, y, mirror_matrix_y)
+
+        else:
+            return x, y
+
+    def scale(self, x, y, factor_x, factor_y):
+
+        scale_matrix = [[factor_x, 0, 0],
+                        [0, factor_y, 0],
+                        [0, 0, 1]]
+
+        return self.transform(x, y, scale_matrix)
