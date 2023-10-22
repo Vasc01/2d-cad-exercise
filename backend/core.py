@@ -74,10 +74,17 @@ class Element(ComponentAbc):
         self.x, self.y = self.transformer.mirror(self.x, self.y, axis)
 
     def scale(self, factor_x, factor_y):
-        self.x, self.y = self.transformer.mirror(self.x, self.y, factor_x, factor_y)
+        self.x, self.y = self.transformer.scale(self.x, self.y, factor_x, factor_y)
 
     def fill(self, setter, value):
-        self.set_name(value) if setter == "set_name"
+        if setter == "name":
+            self.set_name(value)
+        elif setter == "symbol":
+            self.set_symbol(value)
+        elif setter == "symbol color":
+            self.set_symbol_color(value)
+        elif setter == "background":
+            self.set_background_color(value)
 
 
 class Group(ComponentAbc):
@@ -118,7 +125,7 @@ class Group(ComponentAbc):
             element.set_transformer(self.transformer)
             element.scale(factor_x, factor_y)
 
-    def fill(self, setter, value):
+    def fill(self, setter: str, value):
         for element in self.elements:
             element.fill(setter, value)
 
@@ -137,6 +144,14 @@ class Group(ComponentAbc):
         elements_intersection = []
         elements_group_2 = []
 
+        for element in self.elements:
+            if element not in other.elements:
+                elements_group_1.append(element)
+            else:
+                elements_intersection.append(element)
 
+        for element in other.elements:
+            if element not in self.elements:
+                elements_group_2.append(element)
 
-        return self.elements
+        return [elements_group_1, elements_intersection, elements_group_2]
