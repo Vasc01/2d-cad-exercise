@@ -1,7 +1,13 @@
-# Composite pattern
+"""Point-like entry in the 2D-plane with additional characteristics
+
+This module defines the objects in 2D-space on which the transformations are executed.
+Using the composite design pattern Elements and Groups of elements are defined.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
+
+from backend.memento import CanvasMemento
 from backend.transformer import TransformerAbc
 
 
@@ -33,7 +39,20 @@ class ComponentAbc(ABC):
 
 
 class Element(ComponentAbc):
+    """The smallest unit in the composite structure
 
+    Besides the xy-coordinates the element has additional characteristics, which can make it
+    distinguishable in multiple ways.
+
+    Attributes:
+            x (int/float): Location of the element.
+            y (int/float): Location of the element.
+            transformer (TransformerAbc): Defines the rules for coordinate transformation.
+            name (str): Used for description purpose.
+            symbol (str): Used for representation and distinction.
+            symbol_color (str): Used for representation and distinction.
+            background_color (str): Used for representation and distinction.
+    """
     def __init__(self, x, y, transformer=TransformerAbc):
         self.x = x
         self.y = y
@@ -77,6 +96,18 @@ class Element(ComponentAbc):
         self.x, self.y = self.transformer.scale(self.x, self.y, factor_x, factor_y)
 
     def fill(self, setter, value):
+        """Connects the Group-class with the setters of this class
+
+        The method receives indication which setter of this class should be activated
+        and what value should be passed.
+
+        Args:
+            setter (str): Identifier for the setter.
+            value (str): Value for the setter.
+
+        Returns:
+            None
+        """
         if setter == "name":
             self.set_name(value)
         elif setter == "symbol":
@@ -88,12 +119,17 @@ class Element(ComponentAbc):
 
 
 class Group(ComponentAbc):
+    """A group can contain multiple objects of the class Element
+
+    A group calls the coordinate transformation on all elements that it contains.
+
+    Attributes:
+            transformer (TransformerAbc): Defines the rules for coordinate transformation.
+            elements (List): contains Element-objects
+    """
 
     def __init__(self, transformer=TransformerAbc):
-        self.x = ""
-        self.y = ""
         self.transformer = transformer
-
         self.elements: List[ComponentAbc] = []
 
     def add(self, element: Element):
@@ -126,20 +162,59 @@ class Group(ComponentAbc):
             element.scale(factor_x, factor_y)
 
     def fill(self, setter: str, value):
+        """Sets attribute values for all elements in the group
+
+        Args:
+            setter (str): Identifier for the setter.
+            value (str): Value for the setter.
+
+        Returns:
+            None
+        """
         for element in self.elements:
             element.fill(setter, value)
 
     def union(self, other):
+        """Combines elements of two groups
+
+        Args:
+            other (Group): Group with elements, which will be added to the current group.
+
+        Returns:
+            List of elements.
+        """
         self.elements.extend(other.elements)
         return self.elements
 
     def difference(self, other):
+        """Reduce number of elements in the current group
+
+        Args:
+            other (Group): Group with elements, which will be removed from the current group
+            if belonging to both groups.
+
+        Returns:
+            List of elements.
+        """
         for element in self.elements:
             if element in other.elements:
                 self.elements.remove(element)
         return self.elements
 
     def split(self, other):
+        """Split the elements of two groups in three groups
+
+        The split produces following result:
+            Elements belonging only to the first group.
+            Elements belonging only to the second group.
+            Elements belonging to both groups.
+
+        Args:
+            other (Group): Group with elements.
+
+        Returns:
+            List with three entries, which are lists of elements.
+        """
         elements_group_1 = []
         elements_intersection = []
         elements_group_2 = []
@@ -155,3 +230,14 @@ class Group(ComponentAbc):
                 elements_group_2.append(element)
 
         return [elements_group_1, elements_intersection, elements_group_2]
+
+
+class Canvas(Group):
+    """The canvas is a selection of all elements.
+    """
+
+    def create_memento(self):
+        return CanvasMemento(self.elements)
+
+    def restore_from_memento(self, memento):
+        self.elements = memento.get_state()

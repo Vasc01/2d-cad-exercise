@@ -1,4 +1,5 @@
-from backend.core import Element, Group
+from backend.core import Element, Group, Canvas
+from backend.memento import History
 from backend.transformer import CartesianTransformer
 
 transformer = CartesianTransformer()
@@ -73,3 +74,66 @@ split_result = group.split(group_2)
 for elements in split_result:
     print(*elements)
 
+# -----------------------------------------------
+print()
+print("CANVAS TEST:")
+
+elements_3 = [Element(1, 1), Element(2, 2), Element(3, 3)]
+canvas = Canvas(transformer=transformer)
+history = History()
+
+for element in elements_3:
+    canvas.add(element)
+
+print()
+print("Elements on canvas: ", canvas.elements)
+
+history.save_state(canvas.create_memento())
+
+canvas.remove(canvas.elements[-1])
+print()
+print("Elements on canvas: ", canvas.elements)
+history.save_state(canvas.create_memento())
+
+canvas.remove(canvas.elements[-1])
+print()
+print("Elements on canvas: ", canvas.elements)
+history.save_state(canvas.create_memento())
+
+
+canvas.remove(canvas.elements[-1])
+print()
+print("Elements on canvas: ", canvas.elements)
+
+# before pop, save current state, so it is available for redo
+history.save_state(canvas.create_memento())
+
+last_state = history.get_state_past()
+print()
+print("Memento last state", last_state)
+print("Last state content", last_state.get_state())
+
+if last_state:
+    canvas.restore_from_memento(last_state)
+print()
+print("RESTORED Elements on canvas: ", canvas.elements)
+
+last_state = history.get_state_past()
+print()
+print("Memento last state", last_state)
+print("Last state content", last_state.get_state())
+
+if last_state:
+    canvas.restore_from_memento(last_state)
+print()
+print("RESTORED Elements on canvas: ", canvas.elements)
+
+next_state = history.get_state_future()
+print()
+print("Memento next state", next_state)
+print("Next state content", next_state.get_state())
+
+if next_state:
+    canvas.restore_from_memento(next_state)
+print()
+print("FORWARDED Elements on canvas: ", canvas.elements)
