@@ -40,7 +40,7 @@ class Application:
 def main():
     app = Application()
 
-    # curses.wrapper takes care of curses initialization and returns the state of the terminal to usual
+    # curses.wrapper takes care of curses initialization and returns the state of the terminal to default
     # it returns errors to the terminal should they occur during execution
     curses.wrapper(app.mainloop)
 
