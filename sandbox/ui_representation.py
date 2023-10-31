@@ -48,6 +48,7 @@ def main(stdscr):
     menu_window.addstr(1, 27, "Load")
     menu_window.addstr(1, 34, "Help")
     menu_window.addstr(1, 41, "About")
+    menu_window.addstr(1, 49, "Donate")
     menu_window.refresh()
 
     tools_window = curses.newwin(tools_nlines, tools_ncols, tools_begin_y, tools_begin_x)
@@ -79,13 +80,11 @@ def main(stdscr):
 
     ruler_window.addstr(1, width-17, "X")
     ruler_window.addstr(height-8, 2, "Y")
-
     ruler_window.refresh()
 
     canvas_window = curses.newwin(canvas_nlines, canvas_ncols, canvas_begin_y, canvas_begin_x)
     canvas_window.border()
     canvas_window.addstr(0, 1, "Canvas")
-
     canvas_window.refresh()
 
     prompt_window = curses.newwin(prompt_nlines, prompt_ncols, prompt_begin_y, prompt_begin_x)
