@@ -1,6 +1,9 @@
 import curses
 from backend.core import Element, Canvas, Group
-from frontend.selector import selector
+from frontend.selector import selector, navigator_draw
+
+element_default = Element(0, 0).set_symbol("#")
+selected = Group()
 
 # Elements Palette
 element_A = Element(0, 0).set_symbol("A")
@@ -166,6 +169,10 @@ class Application:
             if user_input == "s":
                 selector(canvas_window, element_3)
 
+            print(canvas.elements)
+            if user_input == "d":
+                navigator_draw(canvas_window, canvas, element_default)
+            print(canvas.elements)
 
 
             # new input
