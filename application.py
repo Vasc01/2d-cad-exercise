@@ -1,9 +1,16 @@
 import curses
 from backend.core import Element, Canvas, Group
-from frontend.selector import selector, navigator_draw
+from backend.transformer import CartesianTransformer
+from frontend.selector import selector, navigator_draw, navigator_select, move_initiation
+
+transformer = CartesianTransformer()
 
 element_default = Element(0, 0).set_symbol("#")
+
 selected = Group()
+selected.set_transformer(transformer)
+
+selected_index = []
 
 # Elements Palette
 element_A = Element(0, 0).set_symbol("A")
@@ -31,6 +38,10 @@ class Application:
 
     @staticmethod
     def mainloop(stdscr):
+
+        curses.start_color()
+        curses.use_default_colors()
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
         stdscr.clear()
         # curses.initscr()
@@ -97,7 +108,8 @@ class Application:
         tools_window.addstr(4, 2, "Z ! } = O ?")
         tools_window.addstr(6, 2, "Select")
         tools_window.addstr(7, 2, "Deselect")
-        tools_window.addstr(10, 2, "Move")
+        tools_window.addstr(10, 2, "M", curses.color_pair(1))
+        tools_window.addstr(10, 3, "ove")
         tools_window.addstr(11, 2, "Rotate")
         tools_window.addstr(12, 2, "Mirror")
         tools_window.addstr(13, 2, "Scale")
@@ -156,6 +168,7 @@ class Application:
             # clear previous prompt
             for position_x in range(1, prompt_ncols-1):
                 prompt_window.addstr(1, position_x, " ")
+            prompt_window.addstr(1, 2, "Choose a command. Use keyboard shortcuts.")
             prompt_window.refresh()
 
             # refresh elements on canvas
@@ -166,14 +179,19 @@ class Application:
                 canvas_window.addstr(y, x, symbol)
             canvas_window.refresh()
 
-            if user_input == "s":
-                selector(canvas_window, element_3)
+            # if user_input == "s":
+            #     selector(canvas_window, element_3)
 
-            print(canvas.elements)
+            # print(canvas.elements)
             if user_input == "d":
                 navigator_draw(canvas_window, canvas, element_default)
-            print(canvas.elements)
+            # print(canvas.elements)
 
+            if user_input == "s":
+                navigator_select(canvas_window, canvas, selected_index, selected)
+
+            if user_input == "move":
+                move_initiation(canvas_window, input_window, prompt_window, selected, canvas)
 
             # new input
             curses.echo()
