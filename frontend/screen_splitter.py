@@ -1,5 +1,7 @@
 class ScreenSplitter:
     def __init__(self, height, width):
+
+        # maximum available screen space
         self.width = width
         self.height = height
 

@@ -88,9 +88,7 @@ class Application:
 
             ui_function.load_canvas()
 
-            if user_input == "s":
-                ui_function.select()
-            elif user_input == "m":
+            if user_input == "m":
                 ui_function.move()
             elif user_input == "a":
                 ui_function.add()
