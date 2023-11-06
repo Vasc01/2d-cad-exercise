@@ -2,12 +2,12 @@ import curses
 
 from backend.core import Element
 from frontend.command import MoveCommand
-from frontend.window_content import position_tools_content
 from frontend.initial_data import transformer
 
 
 class UIFunction:
-    def __init__(self, canvas_in, prompt_in, input_in, palette_in, tools_window, canvas_group, temporary_group, palette):
+    def __init__(self, canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools_content,
+                 canvas_group, temporary_group, palette):
         # ui_windows
         self.canvas_in = canvas_in
         self.prompt_in = prompt_in
@@ -18,6 +18,8 @@ class UIFunction:
         self.canvas_group = canvas_group
         self.temporary_group = temporary_group
         self.palette = palette
+        # content
+        self.position_tools_content = position_tools_content
 
     def load_canvas(self):
         for el in self. canvas_group.elements:
@@ -35,26 +37,18 @@ class UIFunction:
             self.palette_in.addstr(y, x, symbol)
         self.palette_in.refresh()
 
-    # select from canvas and transfer to temporary group for transformation
-    def select(self):
+    @staticmethod
+    def navigate(window, on_five):
         curses.noecho()
         curses.cbreak()
 
-        # highlight select-label in tools window
-        select = position_tools_content()["select"]
-        self.tools_window.addstr(*select, curses.A_STANDOUT)
-        self.tools_window.refresh()
-
-        self.prompt_in.addstr(0, 2, f"Choose element! Navigate:NumLock arrows | Escape:Home | Select:5 | Deselect:-")
-        self.prompt_in.refresh()
-
         x, y = 0, 0
-        self.canvas_in.move(y, x)
+        window.move(y, x)
 
         cursor_input = None
         while cursor_input != ord("7"):
 
-            cursor_input = self.canvas_in.getch()
+            cursor_input = window.getch()
             if cursor_input == ord("4"):
                 x -= 1
             elif cursor_input == ord("6"):
@@ -64,36 +58,55 @@ class UIFunction:
             elif cursor_input == ord("2"):
                 y += 1
             elif cursor_input == ord("5"):
-                for el in self.canvas_group.elements:
-                    if el.x == x and el.y == y:
-                        self.temporary_group.add(el)
-                        self.canvas_group.remove(el)
-                        self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
-            elif cursor_input == ord("-"):
-                pass
-                # deselect
+                on_five(x, y)
 
-            self.canvas_in.move(y, x)
-            self.canvas_in.refresh()
+            window.move(y, x)
+            window.refresh()
 
-        # return to normal select-label in tools window
-        select = position_tools_content()["select"]
-        self.tools_window.addstr(*select)
+    def highlight_tool(self, tool):
+        content = self.position_tools_content[tool]
+        self.tools_window.addstr(*content, curses.A_STANDOUT)
         self.tools_window.refresh()
 
-        self.prompt_in.clear()
-        self.prompt_in.addstr(0, 2, "Choose a command. Use keyboard shortcuts.")
-        self.prompt_in.refresh()
+    def play_down_tool(self, tool):
+        content = self.position_tools_content[tool]
+        self.tools_window.addstr(*content)
+        self.tools_window.refresh()
 
-    # def move(self, window, input, prompt, group, canvas_group):
+    # allow selection and highlight of multiple elements
+    def canvas_to_temp(self, x, y):
+        for el in self.canvas_group.elements:
+            if el.x == x and el.y == y:
+                self.temporary_group.add(el)
+                self.canvas_group.remove(el)
+                self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
+
+    # allow selection and highlight of only one element
+    def palette_to_temp(self, x, y):
+        for el in self.palette.elements:
+            if el.x == x and el.y == y:
+                self.temporary_group.add(el)
+                self.palette_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
+
+    def temp_to_canvas(self):
+        for el in self.temporary_group.elements:
+            self.canvas_group.add(el)
+        self.temporary_group.elements.clear()           # !!!
+
     def move(self):
 
-        # highlight move-label in tools window
-        move = position_tools_content()["move"]
-        self.tools_window.addstr(*move, curses.A_STANDOUT)
-        self.tools_window.refresh()
+        self.highlight_tool("move")
 
-        self.select()
+        # selection
+        self.highlight_tool("select")
+
+        self.prompt_in.addstr(0, 2, f"Choose element! Navigate:NumLock arrows | Escape:Home | Select:5 | Deselect:-")
+        self.prompt_in.refresh()
+
+        self.navigate(self.canvas_in, self.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
 
         self.prompt_in.addstr(0, 2, "Enter delta-x and delta-y in the format '<value x>,<value y>'")
         self.prompt_in.refresh()
@@ -110,25 +123,18 @@ class UIFunction:
         move_elements = MoveCommand(self.temporary_group, x, y)
         move_elements.execute()
 
-        # add to canvas and remove from temporary group
-        for el in self.temporary_group.elements:
-            self.canvas_group.add(el)
-        self.temporary_group.elements.clear()
-
+        self.temp_to_canvas()
         self.load_canvas()
         curses.beep()
 
-        # return to normal move-label in tools window
-        move = position_tools_content()["move"]
-        self.tools_window.addstr(*move)
-        self.tools_window.refresh()
+        self.play_down_tool("move")
 
     def select_from_palette(self):
         curses.noecho()
         curses.cbreak()
 
         # highlight select-label in tools window
-        select = position_tools_content()["select"]
+        select = self.position_tools_content["select"]
         self.tools_window.addstr(*select, curses.A_STANDOUT)
         self.tools_window.refresh()
 
@@ -163,7 +169,7 @@ class UIFunction:
             self.palette_in.refresh()
 
         # return to normal select-label in tools window
-        select = position_tools_content()["select"]
+        select = self.position_tools_content["select"]
         self.tools_window.addstr(*select)
         self.tools_window.refresh()
 
@@ -174,7 +180,7 @@ class UIFunction:
     def add(self):
 
         # highlight add element-label in tools window
-        select = position_tools_content()["elements"]
+        select = self.position_tools_content["elements"]
         self.tools_window.addstr(*select, curses.A_STANDOUT)
         self.tools_window.refresh()
 
@@ -192,7 +198,7 @@ class UIFunction:
         curses.beep()
 
         # return to normal add element-label in tools window
-        select = position_tools_content()["elements"]
+        select = self.position_tools_content["elements"]
         self.tools_window.addstr(*select)
         self.tools_window.refresh()
 
