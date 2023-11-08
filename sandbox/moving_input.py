@@ -4,7 +4,6 @@ import curses
 def draw_menu(stdscr):
 
     stdscr.border()
-    # stdscr.getch()
 
     x, y = 0, 0
 
@@ -20,9 +19,6 @@ def draw_menu(stdscr):
             y -= 1
         elif selection_input == "KEY_DOWN":
             y += 1
-
-        # elif selection_input == ord("e"):
-        #     break
 
         # stdscr.clear()
         stdscr.addstr(y, x, "0")

@@ -158,15 +158,18 @@ class WindowCreator:
     def position_tools_content():
         tools_window_content = {
             "elements": (1, 2, "Add Element"),
-            "select": (6, 2, "Select Mode"),
+            "delete": (4, 2, "Del Element"),
+            "insert": (5, 2, "Insert Shape"),
+            "clear": (6, 2, "Clear All"),
+            "select": (8, 2, "Select Mode"),
             "move": (10, 2, "Move"),
             "rotate": (11, 2, "Rotate"),
-            "mirror": (12, 2, "Mirror"),
+            "mirror": (12, 2, "MIrror"),
             "scale": (13, 2, "Scale"),
-            "fill": (14, 2, "Fill"),
-            "union": (15, 2, "Union"),
-            "difference": (16, 2, "Difference"),
-            "split": (17, 2, "Split")
+            "fill": (15, 2, "Fill"),
+            "union": (16, 2, "Union"),
+            "difference": (17, 2, "Difference"),
+            "split": (18, 2, "Split")
         }
         return tools_window_content
 

@@ -11,16 +11,12 @@ def draw_menu(stdscr):
 
         cursor_input = stdscr.getch()
         if cursor_input == curses.KEY_LEFT:
-            curses.beep()
             x -= 1
         elif cursor_input == curses.KEY_RIGHT:
-            curses.beep()
             x += 1
         elif cursor_input == curses.KEY_UP:
-            curses.beep()
             y -= 1
         elif cursor_input == curses.KEY_DOWN:
-            curses.beep()
             y += 1
 
         stdscr.move(y, x)

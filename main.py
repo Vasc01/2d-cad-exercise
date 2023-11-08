@@ -1,7 +1,7 @@
 import curses
 from frontend.window_creator import WindowCreator
 from frontend.ui_function import UIFunction
-from frontend.initial_data import canvas, temporary_group, palette
+from frontend.initial_data import canvas, temporary_group, palette, predefined_square
 
 
 class Application:
@@ -72,6 +72,9 @@ class Application:
                                  canvas, temporary_group, palette)
 
         ui_function.load_palette()
+        ui_function.load_canvas()
+
+        ui_function.add_predefined_shape("square", predefined_square)
 
         # loop during use
         user_input = None
@@ -84,12 +87,22 @@ class Application:
             prompt_in.addstr(0, 2, "Choose a command. Use keyboard shortcuts.")
             prompt_in.refresh()
 
-            ui_function.load_canvas()
-
-            if user_input == "m":
-                ui_function.move()
-            elif user_input == "a":
+            if user_input == "a":
                 ui_function.add()
+            elif user_input == "d":
+                ui_function.delete()
+            elif user_input == "m":
+                ui_function.move()
+            elif user_input == "r":
+                ui_function.rotate()
+            elif user_input == "mi":
+                ui_function.mirror()
+            elif user_input == "s":
+                ui_function.scale()
+            elif user_input == "i":
+                ui_function.insert_shape()
+            elif user_input == "c":
+                ui_function.clear()
 
             input_in.clear()
             input_in.refresh()
@@ -107,7 +120,7 @@ class Application:
 def main():
     app = Application()
 
-    # curses.wrapper takes care of curses initialization and returns the state of the terminal to default
+    # curses.wrapper takes care of curses initialization and returns the state of the terminal to default at the end
     # it returns errors to the terminal should they occur during execution
     curses.wrapper(app.mainloop)
 
