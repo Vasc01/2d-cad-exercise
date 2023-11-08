@@ -128,10 +128,8 @@ class Group(ComponentAbc):
             elements (List): contains Element-objects
     """
 
-    def __init__(self, x=0, y=0, symbol="+", transformer=TransformerAbc):
-        self.x = x
-        self.y = y
-        self.symbol = symbol
+    def __init__(self, transformer=TransformerAbc):
+
         self.transformer = transformer
         self.elements: List[ComponentAbc] = []
 

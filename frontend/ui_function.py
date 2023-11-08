@@ -34,7 +34,8 @@ class UIFunction:
 
     def predefined_shape_to_canvas(self, shape_name):
         if shape_name in self.predefined_shapes:
-            self.canvas_group.add(self.predefined_shapes[shape_name])
+            for el in self.predefined_shapes[shape_name].elements:
+                self.canvas_group.add(el)
 
     def load_canvas(self):
         self.canvas_in.clear()
