@@ -45,3 +45,5 @@ window. Navigation is done with the numlock arrows. Selection is executed with t
 end of navigation/selection is achieved with the _7/home_ button.
 
 <img src="https://github.com/Vasc01/2d-cad-exercise/blob/main/assets/key_navigation.png" width="320" height="400">
+
+<img src="https://github.com/Vasc01/2d-cad-exercise/blob/main/assets/Screenshot_1.png" width="900" height="550">
