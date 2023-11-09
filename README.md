@@ -38,9 +38,10 @@ Use the following shortcuts to initiate commands and then follow the instruction
 | Rotate       | `r`      |
 | Mirror       | `mi`     |
 | Scale        | `s`      |
+| Quit         | `q`      |
 
 Many of the commands require navigation with the cursor and picking or placing objects in the _Canvas_ or _Palette_
 window. Navigation is done with the numlock arrows. Selection is executed with the number _5_ button in the center,
-end of navigation/selection is achieved with the _home/7_ button.
+end of navigation/selection is achieved with the _7/home_ button.
 
 <img src="https://github.com/Vasc01/2d-cad-exercise/blob/main/assets/key_navigation.png" width="320" height="400">
