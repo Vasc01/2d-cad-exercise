@@ -25,7 +25,12 @@ is the lowest window labeled _Command_. Above it is the _Prompt_ window which wi
 what kind of input is expected. Most of the commands require multiple steps to complete. At the end of
 the command execution a sound is audible.
 
-Use the following shortcuts to initiate commands and then follow the instruction in the _Prompt_ window.
+There are two types of graphics available - a single element and a group of elements. Single elements
+are created using _Add Element_(`a`) command. A group of elements is created by importing a predefined
+shape using the _Insert Shape_(`i`) command. Single elements are selected one by one, groups are selected
+by selecting their center marked by `+` sign. All commands are applicable to both types.
+
+Use the following shortcuts to initiate commands(shortcut followed by enter-key) and then follow the instruction in the _Prompt_ window.
 
 
 | Command      | Shortcut |

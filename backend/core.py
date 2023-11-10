@@ -129,7 +129,9 @@ class Group(ComponentAbc):
     """
 
     def __init__(self, transformer=TransformerAbc):
-
+        self.x = 0
+        self.y = 0
+        self.symbol = "+"
         self.transformer = transformer
         self.elements: List[ComponentAbc] = []
 
@@ -147,20 +149,28 @@ class Group(ComponentAbc):
             element.set_transformer(self.transformer)
             element.move(delta_x, delta_y)
 
+        self.x, self.y = self.transformer.move(self.x, self.y, delta_x, delta_y)
+
     def rotate(self, theta):
         for element in self.elements:
             element.set_transformer(self.transformer)
             element.rotate(theta)
+
+        self.x, self.y = self.transformer.rotate(self.x, self.y, theta)
 
     def mirror(self, axis):
         for element in self.elements:
             element.set_transformer(self.transformer)
             element.mirror(axis)
 
+        self.x, self.y = self.transformer.mirror(self.x, self.y, axis)
+
     def scale(self, factor_x, factor_y):
         for element in self.elements:
             element.set_transformer(self.transformer)
             element.scale(factor_x, factor_y)
+
+        self.x, self.y = self.transformer.scale(self.x, self.y, factor_x, factor_y)
 
     def fill(self, setter: str, value):
         """Sets attribute values for all elements in the group

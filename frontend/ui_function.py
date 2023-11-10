@@ -1,6 +1,6 @@
 import curses
 
-from backend.core import Element
+from backend.core import Element, Group
 from frontend.command import MoveCommand, RotateCommand, MirrorCommand, ScaleCommand
 from frontend.initial_data import transformer
 
@@ -34,32 +34,40 @@ class UIFunction:
 
     def predefined_shape_to_canvas(self, shape_name):
         if shape_name in self.predefined_shapes:
+            new_group = Group()
+            new_group.set_transformer(transformer)
+            new_group.x = self.predefined_shapes[shape_name].x
+            new_group.y = self.predefined_shapes[shape_name].y
             for el in self.predefined_shapes[shape_name].elements:
-                self.canvas_group.add(el)
+                new_element = Element(el.x, el.y).set_transformer(transformer).set_symbol(el.symbol)
+                new_group.add(new_element)
+            self.canvas_group.add(new_group)
 
     def load_canvas(self):
+
+        height, width = self.canvas_in.getmaxyx()
+
         self.canvas_in.clear()
         for el in self.canvas_group.elements:
-            symbol = el.symbol
-            x = el.x
-            y = el.y
-            self.canvas_in.addstr(y, x, symbol)
+            # elements out of the canvas are not displayed, yet they still exist
+            if round(el.x) not in range(0, width) or round(el.y) not in range(0, height):
+                continue
+            self.canvas_in.addstr(round(el.y), round(el.x), el.symbol)
+
             try:
                 for el_in in el.elements:
-                    symbol_in = el_in.symbol
-                    x_in = el_in.x
-                    y_in = el_in.y
-                    self.canvas_in.addstr(y_in, x_in, symbol_in)
+                    # group-elements out of the canvas are not displayed, yet they still exist
+                    if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
+                        continue
+                    self.canvas_in.addstr(round(el_in.y), round(el_in.x), el_in.symbol)
+                    self.canvas_in.addstr(round(el.y), round(el.x), el.symbol, curses.A_REVERSE)
             except AttributeError:
                 pass
         self.canvas_in.refresh()
 
     def load_palette(self):
         for el in self.palette_group.elements:
-            symbol = el.symbol
-            x = el.x
-            y = el.y
-            self.palette_in.addstr(y, x, symbol)
+            self.palette_in.addstr(el.y, el.x, el.symbol)
         self.palette_in.refresh()
 
     @staticmethod
@@ -108,11 +116,22 @@ class UIFunction:
 
     # allow selection and highlight of multiple elements
     def canvas_to_temp(self, x, y):
+
+        height, width = self.canvas_in.getmaxyx()
+
         for el in self.canvas_group.elements:
-            if el.x == x and el.y == y:
+            if round(el.x) == x and round(el.y) == y:
                 self.temporary_group.add(el)
                 self.canvas_group.remove(el)
                 self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
+                try:
+                    for el_in in el.elements:
+                        # group-elements out of the canvas are not highlighted
+                        if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
+                            continue
+                        self.canvas_in.addstr(round(el_in.y), round(el_in.x), el_in.symbol, curses.A_STANDOUT)
+                except AttributeError:
+                    pass
 
     # allow selection and highlight of only one element
     def palette_to_temp(self, x, y):
@@ -132,14 +151,6 @@ class UIFunction:
 
     def temp_to_canvas(self):
         for el in self.temporary_group.elements:
-            el.x = round(el.x)
-            el.y = round(el.y)
-
-            # elements out of the canvas size are disregarded
-            height, width = self.canvas_in.getmaxyx()
-            if el.x not in range(0, width) or el.y not in range(0, height):
-                continue
-
             self.canvas_group.add(el)
 
     def new_el_to_canvas(self, x, y):

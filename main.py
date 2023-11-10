@@ -1,7 +1,8 @@
 import curses
 from frontend.window_creator import WindowCreator
 from frontend.ui_function import UIFunction
-from frontend.initial_data import canvas, temporary_group, palette, predefined_square
+from frontend.initial_data import (canvas, temporary_group, palette, predefined_square,
+                                   predefined_z_shape, predefined_smiley)
 
 
 class Application:
@@ -75,6 +76,8 @@ class Application:
         ui_function.load_canvas()
 
         ui_function.add_predefined_shape("square", predefined_square)
+        ui_function.add_predefined_shape("z-shape", predefined_z_shape)
+        ui_function.add_predefined_shape("smiley", predefined_smiley)
 
         # loop during use
         user_input = None
