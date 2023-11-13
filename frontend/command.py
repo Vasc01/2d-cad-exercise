@@ -1,3 +1,11 @@
+"""A middle layer between the frontend and the backend
+
+This module provides single point of communication with the backend. On the side of the frontend there can be
+multiple references to classes in this module. For example a command can be activated with keyboard
+shortcut or by pressing a button wit the mouse -  they both will address the same class here.
+"""
+
+
 from abc import ABC, abstractmethod
 
 
@@ -11,9 +19,6 @@ class Command(ABC):
 class MoveCommand(Command):
 
     def __init__(self, component, delta_x, delta_y):
-        """
-        Receivers are Group or Canvas
-        """
         self.component = component
         self.delta_x = delta_x
         self.delta_y = delta_y

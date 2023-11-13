@@ -1,3 +1,11 @@
+"""Elements for the UI initiation
+
+This file creates:
+    - single elements for the palette
+    - groups of elements for the 'Insert Shape' function
+    - the canvas and temporary group for elements storage
+"""
+
 from backend.core import Element, Canvas, Group
 from backend.transformer import CartesianTransformer
 
@@ -24,10 +32,10 @@ for el in palette_elements:
 
 # predefined square
 square = [(50, 10), (51, 10), (52, 10), (53, 10), (54, 10),
-               (50, 11), (54, 11),
-               (50, 12), (54, 12),
-               (50, 13), (54, 13),
-               (50, 14), (51, 14), (52, 14), (53, 14), (54, 14)]
+          (50, 11), (54, 11),
+          (50, 12), (54, 12),
+          (50, 13), (54, 13),
+          (50, 14), (51, 14), (52, 14), (53, 14), (54, 14)]
 
 predefined_square = Group(transformer=transformer)
 predefined_square.x = 52
@@ -66,12 +74,7 @@ for xy in smiley:
     element = Element(xy[0], xy[1]).set_transformer(transformer).set_symbol("X")
     predefined_smiley.add(element)
 
-# Elements preexistent on canvas
-element_1 = Element(20, 10).set_symbol("@")
-element_2 = Element(22, 10).set_symbol("%")
-element_3 = Element(24, 10).set_symbol("X")
+# Canvas
 canvas = Canvas()
 canvas.set_transformer(transformer)
-# canvas.add(element_1)
-# canvas.add(element_2)
-# canvas.add(element_3)
+

@@ -1,3 +1,8 @@
+"""Handle the frontend interactivity.
+
+The frontend has complex behavior to provide interactive experience. This module implements the behavior.
+"""
+
 import curses
 
 from backend.core import Element, Group
@@ -6,6 +11,22 @@ from frontend.initial_data import transformer
 
 
 class UIFunction:
+    """Contains all the functionalities for the frontend.
+
+    Attributes:
+        canvas_in (curses window): Canvas inner window(within the frame).
+        prompt_in (curses window): Prompt inner window(within the frame).
+        input_in (curses window): Input inner window(within the frame).
+        palette_in (curses window): Palette inner window(within the frame).
+        tools_window (curses window): Left toolbar window.
+        canvas_group (Group): Contains the elements and groups displayed on the canvas.
+        temporary_group (Group): Contains the elements undergoing transformations.
+        palette_group (Group): Contains predefined elements to choose from when adding an element to the canvas.
+        predefined_shapes (dictionary): Contains the predefined shapes to chose from when inserting a shape.
+        position_tools_content (dictionary): Content of the left toolbar with coordinates to be
+        addressed when highlighted
+        reference_point (None/tuple): Contains the reference point coordinates.
+    """
     def __init__(self, canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools_content,
                  canvas_group, temporary_group, palette_group):
 
@@ -33,6 +54,16 @@ class UIFunction:
             self.predefined_shapes[shape_name] = shape_group
 
     def predefined_shape_to_canvas(self, shape_name):
+        """Insert predefined shape on the canvas.
+
+        A copy of the predefined shape is created. This way the original doesn't get lost after transformations
+        or deletion.
+
+        Args:
+            shape_name (Group): A predefined shape.
+        Returns:
+            None
+        """
         if shape_name in self.predefined_shapes:
             new_group = Group()
             new_group.set_transformer(transformer)
@@ -44,7 +75,16 @@ class UIFunction:
             self.canvas_group.add(new_group)
 
     def load_canvas(self):
+        """Load elements and groups placed on the canvas.
 
+        The canvas can handle only integer numbers, so all the entries are rounded before displaying them.
+        If an entry turns out to be a group its elements are accessed and displayed in addition to the group center.
+
+        Args:
+
+        Returns:
+            None
+        """
         height, width = self.canvas_in.getmaxyx()
 
         self.canvas_in.clear()
@@ -72,6 +112,17 @@ class UIFunction:
 
     @staticmethod
     def navigate(window, on_five):
+        """Navigate the canvas or the palette with initial elements.
+
+        The navigation is required in multiple commands. It keeps the cursor within the window the user is navigating.
+
+        Args:
+            window (curses window): Window to navigate in.
+            on_five (function): A function executed on pressing number five on the numpad. This function will receive
+            the current cursor position as integer numbers.
+        Returns:
+            None
+        """
         curses.noecho()
         curses.cbreak()
         height, width = window.getmaxyx()
@@ -114,8 +165,18 @@ class UIFunction:
         self.tools_window.addstr(*content)
         self.tools_window.refresh()
 
-    # allow selection and highlight of multiple elements
     def canvas_to_temp(self, x, y):
+        """Move elements and groups from canvas to temporary group.
+
+        Allows selection and highlight of multiple elements. The selected elements are temporary taken out of the
+        canvas for transformation. This way the rest of the elements on the canvas are unaffected.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
 
         height, width = self.canvas_in.getmaxyx()
 
@@ -133,8 +194,17 @@ class UIFunction:
                 except AttributeError:
                     pass
 
-    # allow selection and highlight of only one element
     def palette_to_temp(self, x, y):
+        """Adds element from the predefined palette to the temporary group.
+
+        Allows selection and highlight of only one element.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
         for el in self.palette_group.elements:
             if el.x == x and el.y == y:
                 if len(self.temporary_group.elements) != 0:
@@ -144,23 +214,60 @@ class UIFunction:
                 self.palette_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
 
     def canvas_to_reference_point(self, x, y):
+        """Marks amd remembers the reference point.
+
+        Multiple attempts are possible, only the last one is valid.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
         if self.reference_point:
             self.load_canvas()
         self.reference_point = (x, y)
         self.canvas_in.addstr(y, x, "+", curses.A_STANDOUT)
 
     def temp_to_canvas(self):
+        """Returns elements and groups to the canvas usually after the transformation.
+
+        Args:
+
+        Returns:
+            None
+        """
         for el in self.temporary_group.elements:
             self.canvas_group.add(el)
 
     def new_el_to_canvas(self, x, y):
+        """Single element is created on the canvas
+
+        Single element selected from the palette with Add Element command is created on the canvas at the current
+        cursor position.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
         symbol = self.temporary_group.elements[0].symbol
         element = Element(x, y).set_transformer(transformer).set_symbol(symbol)
         self.canvas_group.add(element)
         self.canvas_in.addstr(y, x, symbol, curses.A_STANDOUT)
 
     def add(self):
+        """Adds elements to the canvas one by one.
 
+        Allows navigation to a position, placement of elements on the canvas multiple times until interrupted
+        by the user. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("elements")
 
         # selection
@@ -190,6 +297,17 @@ class UIFunction:
         self.play_down_tool("elements")
 
     def delete(self):
+        """Removes selected elements from the canvas.
+
+        Allows navigation to a position, selection of elements on the canvas multiple times until interrupted
+        by the user. The selected elements are automatically removed on exit from the command.
+        Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("delete")
 
         # selection
@@ -213,7 +331,17 @@ class UIFunction:
         self.play_down_tool("delete")
 
     def move(self):
+        """Moves selected elements and groups.
 
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of values for relative movement. The selected elements are automatically moved on exit from
+        the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("move")
 
         # selection
@@ -249,7 +377,17 @@ class UIFunction:
         self.play_down_tool("move")
 
     def rotate(self):
+        """Rotates selected elements and groups.
 
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of value for rotation in degrees. The selected elements are automatically rotated
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("rotate")
 
         # selection
@@ -294,7 +432,17 @@ class UIFunction:
         self.play_down_tool("rotate")
 
     def mirror(self):
+        """Mirrors selected elements and groups.
 
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of three possible mirror options. The selected elements are automatically mirrored
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("mirror")
 
         # selection
@@ -338,7 +486,17 @@ class UIFunction:
         self.play_down_tool("mirror")
 
     def scale(self):
+        """Scale selected elements and groups.
 
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of scale values for x and y direction. The selected elements are automatically scaled
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("scale")
 
         # selection
@@ -382,7 +540,16 @@ class UIFunction:
         self.play_down_tool("scale")
 
     def insert_shape(self):
+        """Insert predefined groups.
 
+        Inserts one predefined shape per activation. The user is prompted to address the required shape by name
+        from the listed names of the available shapes.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("insert")
 
         self.prompt_in.clear()
@@ -402,6 +569,13 @@ class UIFunction:
         self.play_down_tool("insert")
 
     def clear(self):
+        """Clears the canvas from all elements and groups.
+
+        Args:
+
+        Returns:
+            None
+        """
         self.highlight_tool("clear")
 
         self.prompt_in.clear()

@@ -1,3 +1,6 @@
+"""The main eventloop is started in this module.
+"""
+
 import curses
 from frontend.window_creator import WindowCreator
 from frontend.ui_function import UIFunction
@@ -6,6 +9,11 @@ from frontend.initial_data import (canvas, temporary_group, palette, predefined_
 
 
 class Application:
+    """Creator of the frontend.
+    This class creates the appearance of the user interface and listens for user input.
+    For the creation of the interface it depends on the class WindowCreator.
+    For the response to user input it relays on UIFunction.
+    """
 
     def __init__(self):
         pass
@@ -56,7 +64,7 @@ class Application:
         window_creator.populate_window(input_window, window_creator.position_input_content())
         input_window.refresh()
 
-        # inner windows
+        # create inner windows
         canvas_in = curses.newwin(*window_creator.get_canvas_in())
         prompt_in = curses.newwin(*window_creator.get_prompt_in())
         input_in = curses.newwin(*window_creator.get_input_in())
@@ -72,9 +80,9 @@ class Application:
         ui_function = UIFunction(canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools,
                                  canvas, temporary_group, palette)
 
+        # load content
         ui_function.load_palette()
         ui_function.load_canvas()
-
         ui_function.add_predefined_shape("square", predefined_square)
         ui_function.add_predefined_shape("z-shape", predefined_z_shape)
         ui_function.add_predefined_shape("smiley", predefined_smiley)

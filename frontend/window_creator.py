@@ -1,7 +1,23 @@
 class WindowCreator:
+    """Split the screen in windows and fill them
+
+    The size of the terminal is evaluated and the sizes of the windows are calculated to have proper visual
+    representation.
+
+    Attributes:
+        width (int): Number of available characters in the terminal horizontally
+        height (int): Number of available characters in the terminal vertically
+        ...
+
+        For the creation of a window curses requires four attributes:
+        - number of lines, size of the window vertically
+        - number of columns, size of the window horizontally
+        - horizontal position of top left corner for the window
+        - vertical position of top left corner for the window
+        These attributes are defined here for each window to be created in the user interface
+    """
     def __init__(self, height, width):
 
-        # maximum available screen space
         self.width = width
         self.height = height
 
@@ -59,6 +75,21 @@ class WindowCreator:
     # define window sizes and positions
     def calculate_split(self, menu_window_nlines=3, tools_window_ncols=15, input_window_nlines=3,
                         prompt_window_nlines=3):
+        """Calculate the window sizes for the user interface
+
+        Only few fixed points are required to define the user interface, everything else is calculated from them and
+        the size of the terminal.
+
+        Args:
+            menu_window_nlines (int): Height of the menu window.
+            tools_window_ncols (int): Width of the tools window.
+            input_window_nlines (int): Height of the input window.
+            prompt_window_nlines (int): Height of the prompt.
+
+        Returns:
+            None
+        """
+
         self.menu_nlines = menu_window_nlines
         self.menu_ncols = self.width
         self.menu_begin_x = 0
@@ -142,6 +173,14 @@ class WindowCreator:
         return self.palette_in_nlines, self.palette_in_ncols, self.palette_in_begin_y, self.palette_in_begin_x
 
     def position_menu_content(self):
+        """Define/calculate positions for window content
+
+        Having the positions and content in a dictionary accessible with a key helps to manipulate them dynamically
+        during use.
+
+        Returns:
+            Dictionary with content and its positions
+        """
         menu_window_content = {
             "undo": (1, 2, "<Undo"),
             "redo": (1, 9, "Redo>"),
@@ -156,6 +195,14 @@ class WindowCreator:
 
     @staticmethod
     def position_tools_content():
+        """Define/calculate positions for window content
+
+        Having the positions and content in a dictionary accessible with a key helps to manipulate them dynamically
+        during use.
+
+        Returns:
+            Dictionary with content and its positions
+        """
         tools_window_content = {
             "elements": (1, 2, "Add Element"),
             "delete": (4, 2, "Del Element"),
@@ -174,6 +221,14 @@ class WindowCreator:
         return tools_window_content
 
     def position_ruler_content(self):
+        """Define/calculate positions for window content
+
+        Dependent on available space different size of content is generated. The rulers always have the
+        coordinate axes annotated at the end.
+
+        Returns:
+            Dictionary with content and its positions
+        """
         ruler_window_content = {}
 
         for c in range(0, self.ruler_ncols - 12, 5):
