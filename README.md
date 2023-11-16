@@ -16,6 +16,15 @@ terminal using the syntax `C:\path\to\project\folder> python main.py`.
   If the terminal is too small it will not offer enough characters for all the interface features. This will result in
   an error on start.
 
+**_Comments_**
+
+- The program requires additional libraries such as numpy
+- The program can be run only from a terminal. It is not possible to run it from a python IDE.
+- It is not described which terminal to use
+- It is not describe how to activate the virtual environment
+- Time spent to start: 30min
+
+
 # How to Use
 
 This program is at its current state entirely keyboard operated. 
@@ -49,6 +58,11 @@ Many of the commands require navigation with the cursor and picking or placing o
 window. Navigation is done with the numlock arrows. Selection is executed with the number _5_ button in the center,
 end of navigation/selection is achieved with the _7/home_ button.
 
+
 <img src="https://github.com/Vasc01/2d-cad-exercise/blob/main/assets/key_navigation.png" width="320" height="400">
 
 <img src="https://github.com/Vasc01/2d-cad-exercise/blob/main/assets/Screenshot_1.png" width="900" height="550">
+
+**__Comments__**
+
+- The image references are not working (use relative paths using the local files)

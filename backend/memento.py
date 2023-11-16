@@ -5,7 +5,11 @@ if changes need to be reverted or reimplemented.
 """
 
 
+# FIXME: Is this front-end or back-end?
+
 class CanvasMemento:
+    # FIXME: Not inheriting from object
+
     """Saves all elements on the canvas.
 
     Attributes:
@@ -29,6 +33,7 @@ class History:
         state_current (List[CanvasMemento]): List with only one object.
         states_future (List[CanvasMemento]): List of memento objects.
     """
+
     def __init__(self):
         self.states_past = []
         self.state_current = []
