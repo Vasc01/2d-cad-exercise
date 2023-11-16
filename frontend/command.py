@@ -18,6 +18,8 @@ class Command(ABC):
 
 class MoveCommand(Command):
 
+    # FIXME: Document the parameters
+
     def __init__(self, component, delta_x, delta_y):
         self.component = component
         self.delta_x = delta_x
@@ -29,6 +31,8 @@ class MoveCommand(Command):
 
 class RotateCommand(Command):
 
+    # FIXME: Document the parameters
+
     def __init__(self, component, theta):
         self.component = component
         self.theta = theta
@@ -39,6 +43,8 @@ class RotateCommand(Command):
 
 class MirrorCommand(Command):
 
+    # FIXME: Document the parameters
+
     def __init__(self, component, axis):
         self.component = component
         self.axis = axis
@@ -48,6 +54,8 @@ class MirrorCommand(Command):
 
 
 class ScaleCommand(Command):
+
+    # FIXME: Document the parameters
 
     def __init__(self, component, factor_x, factor_y):
         self.component = component

@@ -1,4 +1,9 @@
 class WindowCreator:
+
+    # FIXME: Missing inheritance from object!!!
+    # FIXME: Used in the application, but not part of the application, it is part of the user interface!?
+    # FIXME: Too many attributes, too many responsibilities and thus danger of too many dependencies
+
     """Split the screen in windows and fill them
 
     The size of the terminal is evaluated and the sizes of the windows are calculated to have proper visual
@@ -90,31 +95,37 @@ class WindowCreator:
             None
         """
 
+        # FIXME: Missing comments for the attributes
         self.menu_nlines = menu_window_nlines
         self.menu_ncols = self.width
         self.menu_begin_x = 0
         self.menu_begin_y = 0
 
+        # FIXME: Missing comments for the attributes
         self.tools_nlines = self.height - (self.menu_nlines - 1)
         self.tools_ncols = tools_window_ncols
         self.tools_begin_x = 0
         self.tools_begin_y = self.menu_nlines - 1
 
+        # FIXME: Missing comments for the attributes
         self.input_nlines = input_window_nlines
         self.input_ncols = self.width - (self.tools_ncols - 1)
         self.input_begin_x = self.tools_ncols - 1
         self.input_begin_y = self.height - 3
 
+        # FIXME: Missing comments for the attributes
         self.prompt_nlines = prompt_window_nlines
         self.prompt_ncols = self.width - (self.tools_ncols - 1)
         self.prompt_begin_x = self.tools_ncols - 1
         self.prompt_begin_y = self.input_begin_y - 2
 
+        # FIXME: Missing comments for the attributes
         self.ruler_nlines = self.height - ((self.prompt_nlines - 1) + (self.input_nlines - 1)) - (self.menu_nlines - 1)
         self.ruler_ncols = self.width - (self.tools_ncols - 1)
         self.ruler_begin_x = self.tools_ncols - 1
         self.ruler_begin_y = self.menu_nlines - 1
 
+        # FIXME: Missing comments for the attributes
         self.canvas_nlines = self.ruler_nlines - 2
         self.canvas_ncols = self.ruler_ncols - 5
         self.canvas_begin_x = self.ruler_begin_x + 5
@@ -126,16 +137,19 @@ class WindowCreator:
         self.canvas_in_begin_x = self.canvas_begin_x + 1
         self.canvas_in_begin_y = self.canvas_begin_y + 1
 
+        # FIXME: Missing comments for the attributes
         self.input_in_nlines = self.input_nlines - 2
         self.input_in_ncols = self.input_ncols - 2
         self.input_in_begin_x = self.input_begin_x + 1
         self.input_in_begin_y = self.input_begin_y + 1
 
+        # FIXME: Missing comments for the attributes
         self.prompt_in_nlines = self.prompt_nlines - 2
         self.prompt_in_ncols = self.prompt_ncols - 2
         self.prompt_in_begin_x = self.prompt_begin_x + 1
         self.prompt_in_begin_y = self.prompt_begin_y + 1
 
+        # FIXME: Missing comments for the attributes
         self.palette_in_nlines = 2
         self.palette_in_ncols = self.tools_ncols - 4
         self.palette_in_begin_x = self.tools_begin_x + 2
@@ -231,11 +245,13 @@ class WindowCreator:
         """
         ruler_window_content = {}
 
+        # FIXME: What is the purpose of the following code?
         for c in range(0, self.ruler_ncols - 12, 5):
             number = str(c)
             content = (1, c + 6, number)
             ruler_window_content[f"ncols-{c}"] = content
 
+        # FIXME: What is the purpose of the following code?
         for r in range(0, self.ruler_nlines - 6, 1):
             number = str(r)
             content = (r + 3, 2, number)

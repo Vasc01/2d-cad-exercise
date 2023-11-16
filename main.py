@@ -2,8 +2,12 @@
 """
 
 import curses
+
+# FIXME: The place of WindowCreator is not here, it shall be part of the presentation layer
 from frontend.window_creator import WindowCreator
 from frontend.ui_function import UIFunction
+
+# FIXME: The place of the initial data is not here, it shall be part of the data layer
 from frontend.initial_data import (canvas, temporary_group, palette, predefined_square,
                                    predefined_z_shape, predefined_smiley)
 
@@ -15,11 +19,22 @@ class Application:
     For the response to user input it relays on UIFunction.
     """
 
+    # FIXME: The application is the combination of the different layers.
+    #
+    #  Popular names for the layers are:
+    #   - Presentation Layer    (presenter, view)
+    #   - Business Layer        (view, controller)
+    #   - Data Layer            (model)
+
     def __init__(self):
+        # FIXME: Missing aggregation relationship to the command interface
         pass
 
     @staticmethod
     def mainloop(stdscr):
+        # FIXME: Describe the parameter stdscr, shall not be a mystery
+        # FIXME: This function is not stuctured enough, too long
+        # FIXME: The application knows about curses, it shall know about our own interface, not curses
 
         stdscr.clear()
 
@@ -77,6 +92,23 @@ class Application:
 
         # handle functionalities of the user interface
         position_tools = window_creator.position_tools_content()
+
+        # FIXME: This composition relationship is missing in the UML diagram
+        # Improve the user interface for the presentation layer (Builder Pattern)
+        # The name shall not be UIFunction, too generic. Use a more specific name, like
+        # UserInterface, Presenter, or something like that.
+        #
+        # presenter = (
+        #   Presenter(...)
+        #   .add_window(canvas_in)
+        #   .add_window(prompt_in)
+        #   .add_window(input_in)
+        #   .add_shape("square", predefined_square)
+        #   ....
+        #   .load_palette()
+        #   .load_canvas()
+        #   )
+
         ui_function = UIFunction(canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools,
                                  canvas, temporary_group, palette)
 
@@ -129,11 +161,16 @@ class Application:
 
 
 def main():
+
     app = Application()
 
     # curses.wrapper takes care of curses initialization and returns the state of the terminal to default at the end
     # it returns errors to the terminal should they occur during execution
     curses.wrapper(app.mainloop)
+
+    # FIXME: Why is this necessary? Why the user must use curses.wrapper? Why is it not packed into a class?
+    # The application shall have several layers, each layer shall be a class. One of the classes must use the
+    # curses.wrapper. The other classes must not know about curses.wrapper.
 
 
 if __name__ == "__main__":

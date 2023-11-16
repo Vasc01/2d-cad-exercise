@@ -11,6 +11,13 @@ from frontend.initial_data import transformer
 
 
 class UIFunction:
+
+    # FIXME: Missing inheritance from object!!!
+    # FIXME: Change the name to something more meaningful (e.g. UIController, UIHandler, UI, UIInterface, Presenter)
+    # FIXME: The presenter might have different implementations, missing the abstract interface\
+    # FIXME: Too many internal attributes, too many responsibilities, too many methods (SRP, OCP)
+    # FIXME: It would be nice to have an abstract factory to create the UI elements (e.g. windows, groups, etc.)
+
     """Contains all the functionalities for the frontend.
 
     Attributes:
@@ -29,6 +36,8 @@ class UIFunction:
     """
     def __init__(self, canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools_content,
                  canvas_group, temporary_group, palette_group):
+
+        # TODO: Why? SOLID is totally broken here.
 
         # ui_windows
         self.canvas_in = canvas_in
@@ -50,6 +59,7 @@ class UIFunction:
         self.reference_point = None
 
     def add_predefined_shape(self, shape_name, shape_group):
+        # FIXME: Missing docstring
         if shape_name not in self.predefined_shapes:
             self.predefined_shapes[shape_name] = shape_group
 
@@ -61,9 +71,12 @@ class UIFunction:
 
         Args:
             shape_name (Group): A predefined shape.
+
         Returns:
             None
         """
+
+        # FIXME: What is the purpose of the following code?
         if shape_name in self.predefined_shapes:
             new_group = Group()
             new_group.set_transformer(transformer)
@@ -88,12 +101,15 @@ class UIFunction:
         height, width = self.canvas_in.getmaxyx()
 
         self.canvas_in.clear()
+
+        # FIXME: What is the purpose of the following code?
         for el in self.canvas_group.elements:
             # elements out of the canvas are not displayed, yet they still exist
             if round(el.x) not in range(0, width) or round(el.y) not in range(0, height):
                 continue
             self.canvas_in.addstr(round(el.y), round(el.x), el.symbol)
 
+            # FIXME: What is the purpose of the following code?
             try:
                 for el_in in el.elements:
                     # group-elements out of the canvas are not displayed, yet they still exist
@@ -106,6 +122,8 @@ class UIFunction:
         self.canvas_in.refresh()
 
     def load_palette(self):
+        # FIXME: Missing docstring
+
         for el in self.palette_group.elements:
             self.palette_in.addstr(el.y, el.x, el.symbol)
         self.palette_in.refresh()
@@ -131,9 +149,11 @@ class UIFunction:
         x, y = int(width / 3), int(height / 3)
         window.move(y, x)
 
+        # FIXME: What is the purpose of the following code?
         cursor_input = None
         while cursor_input != ord("7"):
 
+            # FIXME: What is the purpose of the following code?
             cursor_input = window.getch()
             if cursor_input == ord("4"):
                 x -= 1
@@ -156,11 +176,15 @@ class UIFunction:
             window.refresh()
 
     def highlight_tool(self, tool):
+        # FIXME: Missing docstring
+
         content = self.position_tools_content[tool]
         self.tools_window.addstr(*content, curses.A_STANDOUT)
         self.tools_window.refresh()
 
     def play_down_tool(self, tool):
+        # FIXME: Missing docstring
+
         content = self.position_tools_content[tool]
         self.tools_window.addstr(*content)
         self.tools_window.refresh()
@@ -180,17 +204,26 @@ class UIFunction:
 
         height, width = self.canvas_in.getmaxyx()
 
+        # FIXME: What is the purpose of the following code?
         for el in self.canvas_group.elements:
+
+            # ...
             if round(el.x) == x and round(el.y) == y:
                 self.temporary_group.add(el)
                 self.canvas_group.remove(el)
                 self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
+
+                # ...
                 try:
+
+                    # FIXME: What is the purpose of the following code?
                     for el_in in el.elements:
+
                         # group-elements out of the canvas are not highlighted
                         if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
                             continue
                         self.canvas_in.addstr(round(el_in.y), round(el_in.x), el_in.symbol, curses.A_STANDOUT)
+
                 except AttributeError:
                     pass
 
@@ -237,6 +270,8 @@ class UIFunction:
         Returns:
             None
         """
+
+        # FIXME: What is the purpose of the following code?
         for el in self.temporary_group.elements:
             self.canvas_group.add(el)
 
@@ -252,6 +287,8 @@ class UIFunction:
         Returns:
             None
         """
+
+        # FIXME: What is the purpose of the following code?
         symbol = self.temporary_group.elements[0].symbol
         element = Element(x, y).set_transformer(transformer).set_symbol(symbol)
         self.canvas_group.add(element)
@@ -313,6 +350,7 @@ class UIFunction:
         # selection
         self.highlight_tool("select")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, f"Choose element to delete! Navigate:NumLock arrows | Escape:Home "
                                     f"| Select:5")
@@ -347,6 +385,7 @@ class UIFunction:
         # selection
         self.highlight_tool("select")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, f"Choose element! Navigate:NumLock arrows | Escape:Home | Select:5 | Deselect:-")
         self.prompt_in.refresh()
@@ -393,12 +432,14 @@ class UIFunction:
         # selection
         self.highlight_tool("select")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Select center of rotation! Navigate:NumLock arrows | Select:5 | Escape:Home")
         self.prompt_in.refresh()
 
         self.navigate(self.canvas_in, self.canvas_to_reference_point)
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Choose elements! Navigate:NumLock arrows | Select:5 | Escape:Home")
         self.prompt_in.refresh()
@@ -413,19 +454,23 @@ class UIFunction:
                                     "Positive values: clockwise rotation")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         curses.echo()
         curses.nocbreak()
         user_input = self.input_in.getstr(0, 2).decode(encoding="utf-8")
         theta = int(user_input)
 
+        # FIXME: What is the purpose of the following code?
         transformer.set_reference(*self.reference_point)
         rotate_elements = RotateCommand(self.temporary_group, theta)
         rotate_elements.execute()
 
+        # FIXME: What is the purpose of the following code?
         self.temp_to_canvas()
         self.temporary_group.elements.clear()
         self.reference_point = None
 
+        # FIXME: What is the purpose of the following code?
         self.load_canvas()
         curses.beep()
 
@@ -448,12 +493,14 @@ class UIFunction:
         # selection
         self.highlight_tool("select")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Select reference point! Navigate:NumLock arrows | Select:5 | Escape:Home")
         self.prompt_in.refresh()
 
         self.navigate(self.canvas_in, self.canvas_to_reference_point)
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Choose elements! Navigate:NumLock arrows | Select:5 | Escape:Home")
         self.prompt_in.refresh()
@@ -463,19 +510,23 @@ class UIFunction:
         self.play_down_tool("select")
         # end of selection
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Enter mirror direction in the format 'xy' or 'x' or 'y'")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         curses.echo()
         curses.nocbreak()
         user_input = self.input_in.getstr(0, 2).decode(encoding="utf-8")
         direction = user_input
 
+        # FIXME: What is the purpose of the following code?
         transformer.set_reference(*self.reference_point)
         mirror_elements = MirrorCommand(self.temporary_group, direction)
         mirror_elements.execute()
 
+        # FIXME: What is the purpose of the following code?
         self.temp_to_canvas()
         self.temporary_group.elements.clear()
         self.reference_point = None
@@ -502,10 +553,12 @@ class UIFunction:
         # selection
         self.highlight_tool("select")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Select reference point! Navigate:NumLock arrows | Select:5 | Escape:Home")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         self.navigate(self.canvas_in, self.canvas_to_reference_point)
 
         self.prompt_in.clear()
@@ -517,23 +570,28 @@ class UIFunction:
         self.play_down_tool("select")
         # end of selection
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Enter scale-x and scale-y in the format '<value x>,<value y>'")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         curses.echo()
         curses.nocbreak()
         user_input = self.input_in.getstr(0, 2).decode(encoding="utf-8")
         scale_x, scale_y = [int(n) for n in user_input.split(",")]
 
+        # FIXME: What is the purpose of the following code?
         transformer.set_reference(*self.reference_point)
         scale_elements = ScaleCommand(self.temporary_group, scale_x, scale_y)
         scale_elements.execute()
 
+        # FIXME: What is the purpose of the following code?
         self.temp_to_canvas()
         self.temporary_group.elements.clear()
         self.reference_point = None
 
+        # FIXME: What is the purpose of the following code?
         self.load_canvas()
         curses.beep()
 
@@ -552,11 +610,13 @@ class UIFunction:
         """
         self.highlight_tool("insert")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         available_shapes = ', '.join(shape_name for shape_name in self.predefined_shapes)
         self.prompt_in.addstr(0, 2, f"Chose a shape to insert: {available_shapes}")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         curses.echo()
         curses.nocbreak()
         user_input = self.input_in.getstr(0, 2).decode(encoding="utf-8")
@@ -578,14 +638,17 @@ class UIFunction:
         """
         self.highlight_tool("clear")
 
+        # FIXME: What is the purpose of the following code?
         self.prompt_in.clear()
         self.prompt_in.addstr(0, 2, "Clear canvas? y/n")
         self.prompt_in.refresh()
 
+        # FIXME: What is the purpose of the following code?
         curses.echo()
         curses.nocbreak()
         user_input = self.input_in.getstr(0, 2).decode(encoding="utf-8")
 
+        # FIXME: What is the purpose of the following code?
         if user_input == "y":
             self.canvas_group.elements.clear()
 
