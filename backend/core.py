@@ -8,10 +8,12 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from backend.memento import CanvasMemento
+from backend.model import ModelABC
 from backend.transformer import TransformerAbc
 
 
-class ComponentAbc(ABC):
+class ComponentAbc(ModelABC, ABC):
+    pass
 
     @abstractmethod
     def set_transformer(self, transformer):
@@ -63,6 +65,19 @@ class Element(ComponentAbc):
         self.symbol_color = ""
         self.background_color = ""
 
+        # needed for observer design pattern; presenter is the observer
+        self.subscribers = []
+
+    def attach(self, observer):
+        self.subscribers.append(observer)
+
+    def detach(self, observer):
+        self.subscribers.remove(observer)
+
+    def notify(self):
+        for subscriber in self.subscribers:
+            subscriber.update(self.x, self.y)
+
     def set_transformer(self, transformer):
         self.transformer = transformer
         return self
@@ -85,15 +100,19 @@ class Element(ComponentAbc):
 
     def move(self, delta_x, delta_y):
         self.x, self.y = self.transformer.move(self.x, self.y, delta_x, delta_y)
+        self.notify()
 
     def rotate(self, theta):
         self.x, self.y = self.transformer.rotate(self.x, self.y, theta)
+        self.notify()
 
     def mirror(self, axis):
         self.x, self.y = self.transformer.mirror(self.x, self.y, axis)
+        self.notify()
 
     def scale(self, factor_x, factor_y):
         self.x, self.y = self.transformer.scale(self.x, self.y, factor_x, factor_y)
+        self.notify()
 
     def fill(self, setter, value):
         """Connects the Group-class with the setters of this class
@@ -135,6 +154,19 @@ class Group(ComponentAbc):
         self.transformer = transformer
         self.elements: List[ComponentAbc] = []
 
+        # needed for observer design pattern; presenter is the observer
+        self.subscribers = []
+
+    def attach(self, observer):
+        self.subscribers.append(observer)
+
+    def detach(self, observer):
+        self.subscribers.remove(observer)
+
+    def notify(self):
+        for subscriber in self.subscribers:
+            subscriber.update(self.x, self.y)
+
     def add(self, element: Element):
         self.elements.append(element)
 
@@ -150,6 +182,7 @@ class Group(ComponentAbc):
             element.move(delta_x, delta_y)
 
         self.x, self.y = self.transformer.move(self.x, self.y, delta_x, delta_y)
+        self.notify()
 
     def rotate(self, theta):
         for element in self.elements:
@@ -157,6 +190,7 @@ class Group(ComponentAbc):
             element.rotate(theta)
 
         self.x, self.y = self.transformer.rotate(self.x, self.y, theta)
+        self.notify()
 
     def mirror(self, axis):
         for element in self.elements:
@@ -164,6 +198,7 @@ class Group(ComponentAbc):
             element.mirror(axis)
 
         self.x, self.y = self.transformer.mirror(self.x, self.y, axis)
+        self.notify()
 
     def scale(self, factor_x, factor_y):
         for element in self.elements:
@@ -171,6 +206,7 @@ class Group(ComponentAbc):
             element.scale(factor_x, factor_y)
 
         self.x, self.y = self.transformer.scale(self.x, self.y, factor_x, factor_y)
+        self.notify()
 
     def fill(self, setter: str, value):
         """Sets attribute values for all elements in the group

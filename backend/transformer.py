@@ -95,7 +95,7 @@ class CartesianTransformer(TransformerAbc):
             x (int/float): Original location of the point that will be transformed.
             y (int/float): Original location of the point that will be transformed.
             delta_x (int/float): Value for translation in x direction.
-            delta_y (int/float):Value for translation in y direction.
+            delta_y (int/float): Value for translation in y direction.
 
         Returns:
             Call of the transform() function.
@@ -166,7 +166,7 @@ class CartesianTransformer(TransformerAbc):
         """Scale position in 2D-plane
 
         Scale the coordinates of a point based on their distance to a set point(by default the origin 0,0).
-        For uniform scaling the factor in x-direction must be equal to the factor in y-direction. Otherwise the
+        For uniform scaling the factor in x-direction must be equal to the factor in y-direction. Otherwise, the
         transformation results in distortion.
 
          Args:
