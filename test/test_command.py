@@ -1,6 +1,7 @@
 from backend.core import Element, Group, Canvas
 from backend.memento import History
 from backend.transformer import CartesianTransformer
+from frontend.command import MoveCommand
 
 transformer = CartesianTransformer()
 
@@ -13,12 +14,15 @@ class DummyPresenter:
 
 presenter = DummyPresenter()
 
+
 # -----------------------------------------------
 print("ELEMENT TEST:")
 
 element_1 = Element(x=9, y=9, transformer=transformer)
-element_1.attach(presenter)
-element_1.move(1, 1)
+
+move_command = MoveCommand(element_1, 1, 1)
+move_command.attach(presenter)
+move_command.execute()
 
 print("After move taken from Element", element_1.x, element_1.y)
 print()
@@ -33,8 +37,9 @@ group = Group(transformer=transformer)
 for element in elements:
     group.add(element)
 
-group.attach(presenter)
-group.move(1, 1)
+move_command_2 = MoveCommand(group, 1, 1)
+move_command_2.attach(presenter)
+move_command_2.execute()
 
 print("After move taken from Group", group.x, group.y)
 print("After move", element_2.x, element_2.y)

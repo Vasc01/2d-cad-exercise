@@ -11,9 +11,25 @@ from abc import ABC, abstractmethod
 
 class Command(ABC):
 
+    SUBSCRIBERS = []
+
+    @staticmethod
+    def attach(observer):
+        if observer not in Command.SUBSCRIBERS:
+            Command.SUBSCRIBERS.append(observer)
+
+    @staticmethod
+    def detach(observer):
+        Command.SUBSCRIBERS.remove(observer)
+
+    @staticmethod
+    def notify(x, y):
+        for subscriber in Command.SUBSCRIBERS:
+            subscriber.update(x, y)
+
     @abstractmethod
     def execute(self):
-        pass
+        raise NotImplemented
 
 
 class MoveCommand(Command):
@@ -25,6 +41,7 @@ class MoveCommand(Command):
 
     def execute(self):
         self.component.move(self.delta_x, self.delta_y)
+        self.notify(self.component.x, self.component.y)
 
 
 class RotateCommand(Command):
@@ -35,6 +52,7 @@ class RotateCommand(Command):
 
     def execute(self):
         self.component.rotate(self.theta)
+        self.notify(self.component.x, self.component.y)
 
 
 class MirrorCommand(Command):
@@ -45,6 +63,7 @@ class MirrorCommand(Command):
 
     def execute(self):
         self.component.mirror(self.axis)
+        self.notify(self.component.x, self.component.y)
 
 
 class ScaleCommand(Command):
@@ -56,3 +75,4 @@ class ScaleCommand(Command):
 
     def execute(self):
         self.component.scale(self.factor_x, self.factor_y)
+        self.notify(self.component.x, self.component.y)

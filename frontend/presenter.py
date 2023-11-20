@@ -30,11 +30,14 @@ class Presenter(PresenterABC):
         self.palette_group = palette_group
         self.predefined_shapes = {}
 
+        # needed for ui
+        self.canvas_entries = []
+
     def receive_user_input(self):
         pass
 
     def create_view(self):
-        self.view.update()
+        self.view.update_ui()
 
     def update(self, x, y):
         """Used by the model
@@ -68,3 +71,21 @@ class Presenter(PresenterABC):
                 new_element = Element(el.x, el.y).set_transformer(transformer).set_symbol(el.symbol)
                 new_group.add(new_element)
             self.canvas_group.add(new_group)
+
+    def create_canvas_view(self, height, width):
+
+        for el in self.canvas_group.elements:
+            # elements out of the canvas are not displayed, yet they still exist
+            if round(el.x) not in range(0, width) or round(el.y) not in range(0, height):
+                continue
+            self.canvas_entries.append((round(el.y), round(el.x), el.symbol))
+
+            try:
+                for el_in in el.elements:
+                    # group-elements out of the canvas are not displayed, yet they still exist
+                    if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
+                        continue
+                    self.canvas_entries.append((round(el_in.y), round(el_in.x), el_in.symbol))
+                    self.canvas_entries.append((round(el.y), round(el.x), el.symbol, "reverse"))
+            except AttributeError:
+                pass
