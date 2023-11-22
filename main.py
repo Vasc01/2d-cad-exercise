@@ -4,7 +4,7 @@
 import curses
 from frontend.window_creator import WindowCreator
 from frontend.ui_function import UIFunction
-from frontend.initial_data import (canvas, temporary_group, palette, predefined_square,
+from frontend.initial_data import (canvas_group, temporary_group, palette_group, predefined_square,
                                    predefined_z_shape, predefined_smiley)
 
 
@@ -78,7 +78,7 @@ class Application:
         # handle functionalities of the user interface
         position_tools = window_creator.position_tools_content()
         ui_function = UIFunction(canvas_in, prompt_in, input_in, palette_in, tools_window, position_tools,
-                                 canvas, temporary_group, palette)
+                                 canvas_group, temporary_group, palette_group)
 
         # load content
         ui_function.load_palette()

@@ -25,10 +25,10 @@ palette_elements = [
     Element(6, 1).set_symbol("0")
 ]
 
-palette = Group()
-palette.set_transformer(transformer)
+palette_group = Group()
+palette_group.set_transformer(transformer)
 for el in palette_elements:
-    palette.add(el)
+    palette_group.add(el)
 
 # predefined square
 square = [(50, 10), (51, 10), (52, 10), (53, 10), (54, 10),
@@ -75,6 +75,6 @@ for xy in smiley:
     predefined_smiley.add(element)
 
 # Canvas
-canvas = Canvas()
-canvas.set_transformer(transformer)
+canvas_group = Canvas()
+canvas_group.set_transformer(transformer)
 

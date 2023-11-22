@@ -1,4 +1,4 @@
-from frontend.view import UserInterface
+from frontend.view import View
 
 
 class Application(object):
@@ -7,12 +7,12 @@ class Application(object):
         self.ui = user_interface
 
     def run(self):
-        self.ui.initiate_windows()
-        self.ui.main_loop()
+        self.ui.run_main_loop()
 
 
 def main():
-    application = Application(UserInterface)
+    view = View()
+    application = Application(view)
     application.run()
 
 

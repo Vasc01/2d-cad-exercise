@@ -6,10 +6,6 @@ from abc import ABC, abstractmethod
 class WindowABC(ABC):
 
     @abstractmethod
-    def position_content(self):
-        raise NotImplemented
-
-    @abstractmethod
     def create(self):
         raise NotImplemented
 
@@ -43,12 +39,14 @@ class MenuWindow(WindowABC):
     def create(self):
 
         self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
 
         # content is placed at the corresponding coordinates
         window_content = self.position_content()
         for value in window_content.values():
             self.window.addstr(*value)
 
+        self.window.refresh()
         return self.window
 
 
@@ -83,18 +81,20 @@ class ToolsWindow(WindowABC):
 
     def create(self):
         self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
 
         # content is placed at the corresponding coordinates
         window_content = self.position_content()
         for value in window_content.values():
             self.window.addstr(*value)
 
+        self.window.refresh()
         return self.window
 
 
 class InputWindow(WindowABC):
 
-    def __init__(self, width, height, input_window_nlines=3, tools_window_ncols=15):
+    def __init__(self, height, width, input_window_nlines=3, tools_window_ncols=15):
         self.nlines = input_window_nlines
         self.ncols = width - (tools_window_ncols - 1)
         self.begin_x = tools_window_ncols - 1
@@ -108,18 +108,20 @@ class InputWindow(WindowABC):
 
     def create(self):
         self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
 
         # content is placed at the corresponding coordinates
         window_content = self.position_content()
         for value in window_content.values():
             self.window.addstr(*value)
 
+        self.window.refresh()
         return self.window
 
 
 class PromptWindow(WindowABC):
 
-    def __init__(self, width, height, prompt_window_nlines=3, tools_window_ncols=15, input_window_nlines=3):
+    def __init__(self, height, width, prompt_window_nlines=3, tools_window_ncols=15, input_window_nlines=3):
         self.nlines = prompt_window_nlines
         self.ncols = width - (tools_window_ncols - 1)
         self.begin_x = tools_window_ncols - 1
@@ -133,22 +135,24 @@ class PromptWindow(WindowABC):
 
     def create(self):
         self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
 
         # content is placed at the corresponding coordinates
         window_content = self.position_content()
         for value in window_content.values():
             self.window.addstr(*value)
 
+        self.window.refresh()
         return self.window
 
 
 class RulerWindow(WindowABC):
 
-    def __init__(self, width, height):
-        self.nlines = height - ((3 - 1) + (3 - 1)) - (3 - 1)
-        self.ncols = width - (15 - 1)
-        self.begin_x = 15 - 1
-        self.begin_y = 3 - 1
+    def __init__(self, height, width):
+        self.nlines = height - 6
+        self.ncols = width - 14
+        self.begin_x = 14
+        self.begin_y = 2
 
         self.window = None
 
@@ -161,25 +165,26 @@ class RulerWindow(WindowABC):
         Returns:
             Dictionary with content and its positions
         """
-        ruler_window_content = {}
+        window_content = {}
 
         for c in range(0, self.ncols - 12, 5):
             number = str(c)
             content = (1, c + 6, number)
-            ruler_window_content[f"ncols-{c}"] = content
+            window_content[f"ncols-{c}"] = content
 
         for r in range(0, self.nlines - 6, 1):
             number = str(r)
             content = (r + 3, 2, number)
-            ruler_window_content[f"nlines-{r}"] = content
+            window_content[f"nlines-{r}"] = content
 
-        ruler_window_content["X"] = (1, self.ncols - 4, "X")
-        ruler_window_content["Y"] = (self.nlines - 3, 2, "Y")
+        window_content["X"] = (1, self.ncols - 4, "X")
+        window_content["Y"] = (self.nlines - 3, 2, "Y")
 
-        return ruler_window_content
+        return window_content
 
     def create(self):
         self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
 
         # content is placed at the corresponding coordinates
         window_content = self.position_content()
@@ -190,12 +195,91 @@ class RulerWindow(WindowABC):
         self.window.addch(1, self.ncols - 3, curses.ACS_RARROW)
         self.window.addch(self.nlines - 2, 2, curses.ACS_DARROW)
 
+        self.window.refresh()
         return self.window
 
 
 class CanvasWindow(WindowABC):
+    def __init__(self, height, width):
+        self.nlines = height - 8
+        self.ncols = width - 19
+        self.begin_x = 19
+        self.begin_y = 4
+
+        self.window = None
+
+    def position_content(self):
+        window_content = {"header": (0, 1, "Canvas")}
+        return window_content
+
+    def create(self):
+        self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+        self.window.border()
+
+        # content is placed at the corresponding coordinates
+        window_content = self.position_content()
+        for value in window_content.values():
+            self.window.addstr(*value)
+
+        self.window.refresh()
+        return self.window
+
+
+class CanvasInnerWindow(WindowABC):
+    def __init__(self, canvas_height, canvas_width):
+        self.nlines = canvas_height - 2
+        self.ncols = canvas_width - 2
+        self.begin_x = 20
+        self.begin_y = 5
+
+        self.window = None
+
+    def create(self):
+        self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+
+        return self.window
+
+
+class InputInnerWindow(WindowABC):
+    def __init__(self, input_nlines, input_ncols, height):
+        self.nlines = input_nlines - 2
+        self.ncols = input_ncols - 2
+        self.begin_x = 15
+        self.begin_y = height - 2
+
+        self.window = None
+
+    def create(self):
+        self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+
+        return self.window
+
+
+class PromptInnerWindow(WindowABC):
+    def __init__(self, prompt_nlines, prompt_ncols, height):
+        self.nlines = prompt_nlines - 2
+        self.ncols = prompt_ncols - 2
+        self.begin_x = 15
+        self.begin_y = height - 4
+
+        self.window = None
+
+    def create(self):
+        self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+
+        return self.window
+
+
+class PaletteInnerWindow(WindowABC):
     def __init__(self):
-        self.canvas_nlines = self.ruler_nlines - 2
-        self.canvas_ncols = self.ruler_ncols - 5
-        self.canvas_begin_x = self.ruler_begin_x + 5
-        self.canvas_begin_y = self.ruler_begin_y + 2
+        self.nlines = 2
+        self.ncols = 11
+        self.begin_x = 2
+        self.begin_y = 4
+
+        self.window = None
+
+    def create(self):
+        self.window = curses.newwin(self.nlines, self.ncols, self.begin_y, self.begin_x)
+
+        return self.window
