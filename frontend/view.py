@@ -38,8 +38,12 @@ class View(ViewABC):
         self.canvas_inner_window = None
         self.prompt_inner_window = None
         self.input_inner_window = None
+        # content
+        self.tools_window_content = None
+        # variables
+        self.reference_point = None
 
-# ------------------------------------------------------------------------------
+# -------------------MVP--------------------------------------------------------
 
     def send_user_input(self):
         raise NotImplemented
@@ -48,26 +52,158 @@ class View(ViewABC):
     def update_ui(self, update_window, entries):
         # functions loading and updating windows from tuples/lists with data
 
-        # unpacking of the received update
+        # check which window is the data ment for
         window = None
         if update_window == "canvas":
             window = self.canvas_inner_window
         elif update_window == "palette":
             window = self.palette_inner_window
+
+        # unpack component representation
         for entry in entries:
             y, x, symbol, *args = entry
+
+            # if received data has additional parameter for highlighting
+            parameter = None
             if args:
-                window.addstr(y, x, symbol, *args)
-            window.addstr(y, x, symbol)
+                if args[0] == "standout":
+                    parameter = curses.A_STANDOUT
+                elif args[0] == "reverse":
+                    parameter = curses.A_REVERSE
+                self.add_string(window, y, x, symbol, parameter=parameter)
+
+            # if received data has NO parameter for highlighting
+            else:
+                self.add_string(window, y, x, symbol)
         window.refresh()
 
-# ------------------------------------------------------------------------------
+    @staticmethod
+    def add_string(window, y, x, symbol, parameter=None):
+        """Input verification to avoid software crash.
+            Only round numbers are accepted by curses.
+            Only entries within the canvas are acceptable
+        """
+        height, width = window.getmaxyx()
 
-    def load_canvas(self):
-        raise NotImplemented
+        if parameter:
+            if round(x) in range(0, width) or round(y) in range(0, height):
+                window.addstr(round(y), round(x), symbol, parameter)
+
+        else:
+            if round(x) in range(0, width) or round(y) in range(0, height):
+                window.addstr(round(y), round(x), symbol)
+
+# ------------------------------------------------------------------------------
+    def highlight_tool(self, tool):
+        content = self.tools_window_content[tool]
+        self.tools_window.addstr(*content, curses.A_STANDOUT)
+        self.tools_window.refresh()
+
+    def play_down_tool(self, tool):
+        content = self.tools_window_content[tool]
+        self.tools_window.addstr(*content)
+        self.tools_window.refresh()
+
+    def canvas_to_reference_point(self, x, y):
+        """Marks amd remembers the reference point.
+
+        Multiple attempts are possible, only the last one is valid.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
+        if self.reference_point:
+            self.load_canvas_view()
+        self.reference_point = (x, y)
+        self.canvas_inner_window.addstr(y, x, "+", curses.A_STANDOUT)
+
+    @staticmethod
+    def navigate(window, on_five):
+        """Navigate the canvas or the palette with initial elements.
+
+        The navigation is required in multiple commands. It keeps the cursor within the window the user is navigating.
+
+        Args:
+            window (curses window): Window to navigate in.
+            on_five (function): A function executed on pressing number five on the numpad. This function will receive
+            the current cursor position as integer numbers.
+        Returns:
+            None
+        """
+        curses.noecho()
+        curses.cbreak()
+        height, width = window.getmaxyx()
+
+        # place cursor closer to middle of the screen for faster navigation
+        x, y = int(width / 3), int(height / 3)
+        window.move(y, x)
+
+        cursor_input = None
+        while cursor_input != ord("7"):
+
+            cursor_input = window.getch()
+            if cursor_input == ord("4"):
+                x -= 1
+            elif cursor_input == ord("6"):
+                x += 1
+            elif cursor_input == ord("8"):
+                y -= 1
+            elif cursor_input == ord("2"):
+                y += 1
+            elif cursor_input == ord("5"):
+                on_five(x, y)
+
+            # prevent cursor from leaving the screen
+            x = max(0, x)
+            x = min(width - 1, x)
+            y = max(0, y)
+            y = min(height - 1, y)
+
+            window.move(y, x)
+            window.refresh()
 
     def add(self):
-        raise NotImplemented
+        """Adds elements to the canvas one by one.
+
+        Allows navigation to a position, placement of elements on the canvas multiple times until interrupted
+        by the user. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("elements")
+
+        # selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Choose element! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.palette_inner_window, self.presenter.palette_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Place element! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.new_el_to_canvas)
+
+        self.presenter.temporary_group.elements.clear()
+
+        # loading canvas and palette clears highlights
+        self.presenter.load_canvas_view()
+        self.presenter.load_palette_view()
+        curses.beep()
+
+        self.play_down_tool("elements")
 
     def delete(self):
         raise NotImplemented
@@ -94,16 +230,21 @@ class View(ViewABC):
         # windows
         self.menu_window = MenuWindow(width).create()
         self.tools_window = ToolsWindow(height).create()
+        self.tools_window_content = ToolsWindow(height).position_content()
         self.ruler_window = RulerWindow(height, width).create()
         self.canvas_window = CanvasWindow(height, width).create()
         self.prompt_window = PromptWindow(height, width).create()
         self.input_window = InputWindow(height, width).create()
+
         # inner windows
         self.palette_inner_window = PaletteInnerWindow().create()
+
         canvas_height, canvas_width = self.canvas_window.getmaxyx()
         self.canvas_inner_window = CanvasInnerWindow(canvas_height, canvas_width).create()
+
         prompt_nlines, prompt_ncols = self.prompt_window.getmaxyx()
         self.prompt_inner_window = PromptInnerWindow(prompt_nlines, prompt_ncols, height).create()
+
         input_height, input_width = self.input_window.getmaxyx()
         self.input_inner_window = InputInnerWindow(input_height, input_width, height).create()
 
@@ -124,7 +265,7 @@ class View(ViewABC):
         self.presenter.add_predefined_shape("smiley", predefined_smiley)
 
         # load content
-        self.presenter.load_palette()
+        self.presenter.load_palette_view()
         # presenter.load_canvas()
 
         # loop during use and wait for command

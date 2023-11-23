@@ -30,7 +30,10 @@ class Presenter(PresenterABC):
         self.palette_group = None
         self.predefined_shapes = {}
 
-        # needed for ui
+        # variables
+        self.reference_point = None
+
+        # content for user interface
         self.canvas_entries = []
         self.palette_entries = []
 
@@ -47,7 +50,7 @@ class Presenter(PresenterABC):
         if shape_name not in self.predefined_shapes:
             self.predefined_shapes[shape_name] = shape_group
 
-# ------------------------------------------------------------------------------
+# -------------------MVP--------------------------------------------------------
 
     def receive_user_input(self):
         pass
@@ -69,27 +72,28 @@ class Presenter(PresenterABC):
         for el in self.palette_group.elements:
             self.palette_entries.append((el.y, el.x, el.symbol))
 
-    def load_palette(self):
+    def load_palette_view(self):
         self.create_palette_view()
         self.view.update_ui("palette", self.palette_entries)
+        self.palette_entries.clear()
 
-    def create_canvas_view(self, height, width):
+    def create_canvas_view(self):
 
         for el in self.canvas_group.elements:
-            # elements out of the canvas are not displayed, yet they still exist
-            if round(el.x) not in range(0, width) or round(el.y) not in range(0, height):
-                continue
-            self.canvas_entries.append((round(el.y), round(el.x), el.symbol))
+            self.canvas_entries.append((el.y, el.x, el.symbol))
 
+            # check if there are elements in the element - true if it is a group
             try:
                 for el_in in el.elements:
-                    # group-elements out of the canvas are not displayed, yet they still exist
-                    if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
-                        continue
-                    self.canvas_entries.append((round(el_in.y), round(el_in.x), el_in.symbol))
-                    self.canvas_entries.append((round(el.y), round(el.x), el.symbol, "reverse"))
+                    self.canvas_entries.append((el_in.y, el_in.x, el_in.symbol))
+                    self.canvas_entries.append((el.y, el.x, el.symbol, "reverse"))
             except AttributeError:
                 pass
+
+    def load_canvas_view(self):
+        self.create_canvas_view()
+        self.view.update_ui("canvas", self.canvas_entries)
+        self.canvas_entries.clear()
 
     def predefined_shape_to_canvas(self, shape_name):
         """Insert predefined shape on the canvas.
@@ -111,3 +115,82 @@ class Presenter(PresenterABC):
                 new_element = Element(el.x, el.y).set_transformer(transformer).set_symbol(el.symbol)
                 new_group.add(new_element)
             self.canvas_group.add(new_group)
+
+    def canvas_to_temp(self, x, y):                                     # let view manage highlighting
+        """Move elements and groups from canvas to temporary group.
+
+        Allows selection and highlight of multiple elements. The selected elements are temporary taken out of the
+        canvas for transformation. This way the rest of the elements on the canvas are unaffected.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
+
+        # height, width = self.canvas_in.getmaxyx()
+
+        for el in self.canvas_group.elements:
+            if round(el.x) == x and round(el.y) == y:
+                self.temporary_group.add(el)
+                self.canvas_group.remove(el)
+                # self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
+                # try:
+                #     for el_in in el.elements:
+                #         # group-elements out of the canvas are not highlighted
+                #         if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
+                #             continue
+                #         self.canvas_in.addstr(round(el_in.y), round(el_in.x), el_in.symbol, curses.A_STANDOUT)
+                # except AttributeError:
+                #     pass
+
+    def palette_to_temp(self, x, y):
+        """Adds element from the predefined palette to the temporary group.
+
+        Allows selection and highlight of only one element.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
+        # check if there is element at the selected coordinates
+        for el in self.palette_group.elements:
+            if el.x == x and el.y == y:
+
+                # override the selection each time; allow only one selection to draw with
+                if len(self.temporary_group.elements) != 0:
+                    self.temporary_group.elements.clear()
+                    self.load_palette_view()
+                self.temporary_group.add(el)
+                self.view.update_ui("palette", [(y, x, el.symbol, "standout")])
+
+    def temp_to_canvas(self):
+        """Returns elements and groups to the canvas usually after the transformation.
+
+        Args:
+
+        Returns:
+            None
+        """
+        for el in self.temporary_group.elements:
+            self.canvas_group.add(el)
+
+    def new_el_to_canvas(self, x, y):
+        """Single element is created on the canvas
+
+        Single element selected from the palette with Add Element command is created on the canvas at the current
+        cursor position.
+
+        Args:
+            x (int): Cursor position.
+            y (int): Cursor position.
+        Returns:
+            None
+        """
+        symbol = self.temporary_group.elements[0].symbol
+        element = Element(x, y).set_transformer(transformer).set_symbol(symbol)
+        self.canvas_group.add(element)
+        self.view.update_ui("canvas", [(y, x, symbol, "standout")])
