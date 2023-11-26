@@ -11,10 +11,6 @@ class PresenterABC(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def create_view(self):
-        raise NotImplementedError
-
-    @abstractmethod
     def update(self, x, y):
         raise NotImplementedError
 
@@ -37,6 +33,26 @@ class Presenter(PresenterABC):
         self.canvas_entries = []
         self.palette_entries = []
 
+# -------------------MVP--------------------------------------------------------
+
+    def receive_user_input(self):
+        """Used by view
+
+        The view calls this method to activate commands used on elements/groups
+        """
+
+        pass
+
+    def update(self, x, y):
+        """Used by the model
+
+        The model calls this method as part of observer design pattern and sends as parameters
+        the newly calculated x and y
+        """
+        pass
+
+# ------------------------------------------------------------------------------
+
     def set_canvas_group(self, canvas_group):
         self.canvas_group = canvas_group
 
@@ -49,24 +65,6 @@ class Presenter(PresenterABC):
     def add_predefined_shape(self, shape_name, shape_group):
         if shape_name not in self.predefined_shapes:
             self.predefined_shapes[shape_name] = shape_group
-
-# -------------------MVP--------------------------------------------------------
-
-    def receive_user_input(self):
-        pass
-
-    def create_view(self):
-        self.view.update_ui()
-
-    def update(self, x, y):
-        """Used by the model
-
-        The model calls this method as part of observer design pattern and sends as parameters
-        the newly calculated x and y
-        """
-        pass
-
-# ------------------------------------------------------------------------------
 
     def create_palette_view(self):
         for el in self.palette_group.elements:

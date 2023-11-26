@@ -10,11 +10,11 @@ from frontend.initial_data import (canvas_group, temporary_group, palette_group,
 class ViewABC(ABC):
 
     @abstractmethod
-    def send_user_input(self):
+    def update_ui(self, window, data):
         raise NotImplemented
 
     @abstractmethod
-    def update_ui(self, window, data):
+    def run_main_loop(self):
         raise NotImplemented
 
 
@@ -24,8 +24,8 @@ class View(ViewABC):
         self.presenter = Presenter(self)
 
         # available terminal space
-        self.ncols = 0
-        self.nlines = 0
+        # self.ncols = 0
+        # self.nlines = 0
         # windows
         self.menu_window = None
         self.tools_window = None
@@ -44,10 +44,6 @@ class View(ViewABC):
         self.reference_point = None
 
 # -------------------MVP--------------------------------------------------------
-
-    def send_user_input(self):
-        raise NotImplemented
-    #     # sends the user choice from the while loop to presenter if choice is correct
 
     def update_ui(self, update_window, entries):
         # functions loading and updating windows from tuples/lists with data
@@ -309,5 +305,7 @@ class View(ViewABC):
             user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
 
     def run_main_loop(self):
-        # ui_execution
+
+        # wrapper sets up the terminal for the program
+        # when the program is closed wrapper restores the default terminal settings
         curses.wrapper(self.create_main_loop)
