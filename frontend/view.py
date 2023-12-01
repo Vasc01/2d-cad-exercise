@@ -1,5 +1,6 @@
 import curses
 from abc import abstractmethod, ABC
+
 from frontend.presenter import Presenter
 from frontend.window import MenuWindow, ToolsWindow, InputWindow, PromptWindow, RulerWindow, CanvasWindow, \
     CanvasInnerWindow, InputInnerWindow, PromptInnerWindow, PaletteInnerWindow
@@ -23,9 +24,6 @@ class View(ViewABC):
     def __init__(self):
         self.presenter = Presenter(self)
 
-        # available terminal space
-        # self.ncols = 0
-        # self.nlines = 0
         # windows
         self.menu_window = None
         self.tools_window = None
@@ -43,7 +41,7 @@ class View(ViewABC):
         # variables
         self.reference_point = None
 
-# -------------------MVP--------------------------------------------------------
+    # -------------------MVP--------------------------------------------------------
 
     def update_ui(self, update_window, entries):
         # functions loading and updating windows from tuples/lists with data
@@ -82,14 +80,14 @@ class View(ViewABC):
         height, width = window.getmaxyx()
 
         if parameter:
-            if round(x) in range(0, width) or round(y) in range(0, height):
+            if round(x) in range(0, width) and round(y) in range(0, height):
                 window.addstr(round(y), round(x), symbol, parameter)
 
         else:
-            if round(x) in range(0, width) or round(y) in range(0, height):
+            if round(x) in range(0, width) and round(y) in range(0, height):
                 window.addstr(round(y), round(x), symbol)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     def highlight_tool(self, tool):
         content = self.tools_window_content[tool]
         self.tools_window.addstr(*content, curses.A_STANDOUT)
@@ -112,7 +110,9 @@ class View(ViewABC):
             None
         """
         if self.reference_point:
-            self.load_canvas_view()
+            self.canvas_inner_window.clear()
+            self.presenter.load_canvas_view()
+            self.canvas_inner_window.refresh()
         self.reference_point = (x, y)
         self.canvas_inner_window.addstr(y, x, "+", curses.A_STANDOUT)
 
@@ -202,27 +202,325 @@ class View(ViewABC):
         self.play_down_tool("elements")
 
     def delete(self):
-        raise NotImplemented
+        """Removes selected elements from the canvas.
+
+        Allows navigation to a position, selection of elements on the canvas multiple times until interrupted
+        by the user. The selected elements are automatically removed on exit from the command.
+        Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("delete")
+
+        # start of selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, f"Choose element to delete! Navigate:NumLock arrows"
+                                              f" | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.presenter.temporary_group.elements.clear()
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+
+        curses.beep()
+
+        self.play_down_tool("delete")
 
     def move(self):
-        raise NotImplemented
+        """Moves selected elements and groups.
+
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of values for relative movement. The selected elements are automatically moved on exit from
+        the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("move")
+
+        # start of selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, f"Choose element! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Enter delta-x and delta-y in the format '<value x>,<value y>'")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+        x, y = [int(n) for n in user_input.split(",")]
+
+        # send user input to presenter
+        movement = (x, y)
+        self.presenter.receive_user_input(self.presenter.temporary_group, "move", movement)
+
+        self.presenter.temp_to_canvas()
+        self.presenter.temporary_group.elements.clear()
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("move")
 
     def rotate(self):
-        raise NotImplemented
+        """Rotates selected elements and groups.
+
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of value for rotation in degrees. The selected elements are automatically rotated
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("rotate")
+
+        # start of selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Select center of rotation! Navigate:NumLock arrows"
+                                              " | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.canvas_to_reference_point)
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Choose elements! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Enter angle of rotation in degrees in the format '<value>'.  "
+                                              "Positive values: clockwise rotation")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+        theta = int(user_input)
+
+        rotation_values = (theta, self.reference_point)
+        self.presenter.receive_user_input(self.presenter.temporary_group, "rotate", rotation_values)
+
+        self.presenter.temp_to_canvas()
+        self.presenter.temporary_group.elements.clear()
+        self.reference_point = None
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("rotate")
 
     def mirror(self):
-        raise NotImplemented
+        """Mirrors selected elements and groups.
+
+                Allows navigation to a position, selection of elements or groups on the canvas multiple times
+                until interrupted
+                by the user, entry of three possible mirror options. The selected elements are automatically mirrored
+                on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+                Args:
+
+                Returns:
+                    None
+                """
+        self.highlight_tool("mirror")
+
+        # selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Select reference point! Navigate:NumLock arrows "
+                                              "| Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.canvas_to_reference_point)
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Choose elements! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Enter mirror direction in the format 'xy' or 'x' or 'y'")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+        direction = user_input
+
+        mirror_values = (direction, self.reference_point)
+        self.presenter.receive_user_input(self.presenter.temporary_group, "mirror", mirror_values)
+
+        self.presenter.temp_to_canvas()
+        self.presenter.temporary_group.elements.clear()
+        self.reference_point = None
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("mirror")
 
     def scale(self):
-        raise NotImplemented
+        """Scale selected elements and groups.
+
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times until interrupted
+        by the user, entry of scale values for x and y direction. The selected elements are automatically scaled
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("scale")
+
+        # selection
+        self.highlight_tool("select")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Select reference point! Navigate:NumLock arrows "
+                                              "| Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.canvas_to_reference_point)
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Choose elements! Navigate:NumLock arrows | Select:5 | Escape:Home")
+        self.prompt_inner_window.refresh()
+
+        self.navigate(self.canvas_inner_window, self.presenter.canvas_to_temp)
+
+        self.play_down_tool("select")
+        # end of selection
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Enter scale-x and scale-y in the format '<value x>,<value y>'")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+        scale_x, scale_y = [int(n) for n in user_input.split(",")]
+
+        scale_values = (scale_x, scale_y, self.reference_point)
+        self.presenter.receive_user_input(self.presenter.temporary_group, "scale", scale_values)
+
+        self.presenter.temp_to_canvas()
+        self.presenter.temporary_group.elements.clear()
+        self.reference_point = None
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("scale")
 
     def insert_shape(self):
-        raise NotImplemented
+        """Insert predefined groups.
+
+        Inserts one predefined shape per activation. The user is prompted to address the required shape by name
+        from the listed names of the available shapes.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("insert")
+
+        self.prompt_inner_window.clear()
+        available_shapes = ', '.join(shape_name for shape_name in self.presenter.predefined_shapes)
+        self.prompt_inner_window.addstr(0, 2, f"Chose a shape to insert: {available_shapes}")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+
+        self.presenter.predefined_shape_to_canvas(user_input)
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("insert")
 
     def clear(self):
-        raise NotImplemented
+        """Clears the canvas from all elements and groups.
+
+        Args:
+
+        Returns:
+            None
+        """
+        self.highlight_tool("clear")
+
+        self.prompt_inner_window.clear()
+        self.prompt_inner_window.addstr(0, 2, "Clear canvas? y/n")
+        self.prompt_inner_window.refresh()
+
+        curses.echo()
+        curses.nocbreak()
+        user_input = self.input_inner_window.getstr(0, 2).decode(encoding="utf-8")
+
+        if user_input == "y":
+            self.presenter.canvas_group.elements.clear()
+
+        self.canvas_inner_window.clear()
+        self.presenter.load_canvas_view()
+        self.canvas_inner_window.refresh()
+        curses.beep()
+
+        self.play_down_tool("clear")
 
     def initiate_windows(self, height, width):
+
+        # calculates window sizes based on the available pixels in the terminal
+        # WindowCalculator(height, width).calculate_split()
+
         # windows
         self.menu_window = MenuWindow(width).create()
         self.tools_window = ToolsWindow(height).create()
@@ -246,6 +544,7 @@ class View(ViewABC):
 
     def create_main_loop(self, stdscr):
 
+        # stdscr is the complete size of the terminal, all available pixels on the screen
         stdscr.clear()
         height, width = stdscr.getmaxyx()
 
@@ -262,7 +561,7 @@ class View(ViewABC):
 
         # load content
         self.presenter.load_palette_view()
-        # presenter.load_canvas()
+        self.presenter.load_canvas_view()
 
         # loop during use and wait for command
         user_input = None

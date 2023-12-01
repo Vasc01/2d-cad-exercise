@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 
 from backend.core import Group, Element
+from frontend.command import MoveCommand, RotateCommand, MirrorCommand, ScaleCommand
 from frontend.initial_data import transformer
 
 
 class PresenterABC(ABC):
 
     @abstractmethod
-    def receive_user_input(self):
+    def receive_user_input(self, component, command,  command_values):
         raise NotImplementedError
 
     @abstractmethod
@@ -35,13 +36,32 @@ class Presenter(PresenterABC):
 
 # -------------------MVP--------------------------------------------------------
 
-    def receive_user_input(self):
+    def receive_user_input(self, component, command,  command_values):
         """Used by view
 
         The view calls this method to activate commands used on elements/groups
         """
 
-        pass
+        if command == "move":
+            delta_x, delta_y = command_values
+            move_command = MoveCommand(component, delta_x, delta_y)
+            move_command.attach(self)
+            move_command.execute()
+        elif command == "rotate":
+            theta, reference_point = command_values
+            transformer.set_reference(*reference_point)
+            rotate_command = RotateCommand(component, theta)
+            rotate_command.execute()
+        elif command == "mirror":
+            direction, reference_point = command_values
+            transformer.set_reference(*reference_point)
+            mirror_command = MirrorCommand(component, direction)
+            mirror_command.execute()
+        elif command == "scale":
+            scale_x, scale_y, reference_point = command_values
+            transformer.set_reference(*reference_point)
+            scale_command = ScaleCommand(component, scale_x, scale_y)
+            scale_command.execute()
 
     def update(self, x, y):
         """Used by the model
@@ -127,21 +147,20 @@ class Presenter(PresenterABC):
             None
         """
 
-        # height, width = self.canvas_in.getmaxyx()
-
         for el in self.canvas_group.elements:
+
+            # check if element position is the same as cursor position
             if round(el.x) == x and round(el.y) == y:
                 self.temporary_group.add(el)
                 self.canvas_group.remove(el)
-                # self.canvas_in.addstr(y, x, el.symbol, curses.A_STANDOUT)
-                # try:
-                #     for el_in in el.elements:
-                #         # group-elements out of the canvas are not highlighted
-                #         if round(el_in.x) not in range(0, width) or round(el_in.y) not in range(0, height):
-                #             continue
-                #         self.canvas_in.addstr(round(el_in.y), round(el_in.x), el_in.symbol, curses.A_STANDOUT)
-                # except AttributeError:
-                #     pass
+                self.view.update_ui("canvas", [(y, x, el.symbol, "standout")])
+
+                # in case the element is a groped shape the inner elements are highlighted too
+                try:
+                    for el_in in el.elements:
+                        self.view.update_ui("canvas", [(el_in.y, el_in.x, el_in.symbol, "standout")])
+                except AttributeError:
+                    pass
 
     def palette_to_temp(self, x, y):
         """Adds element from the predefined palette to the temporary group.
