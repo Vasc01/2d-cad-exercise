@@ -7,7 +7,7 @@ Using the composite design pattern Elements and Groups of elements are defined.
 from abc import abstractmethod, ABC
 from typing import List
 
-from backend.memento import CanvasMemento
+from frontend.memento import CanvasMemento
 from backend.transformer import TransformerAbc
 
 

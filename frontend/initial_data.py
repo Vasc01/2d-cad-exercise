@@ -1,9 +1,10 @@
-"""Elements for the UI initiation
+"""Elements for the UI initiation and backend calculations.
 
 This file creates:
     - single elements for the palette
     - groups of elements for the 'Insert Shape' function
-    - the canvas and temporary group for elements storage
+    - the canvas group
+    - the transformer for the backend calculations
 """
 
 from backend.core import Element, Canvas, Group
@@ -77,4 +78,3 @@ for xy in smiley:
 # Canvas
 canvas_group = Canvas()
 canvas_group.set_transformer(transformer)
-

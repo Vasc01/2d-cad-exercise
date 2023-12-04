@@ -1,9 +1,13 @@
+"""Handle the frontend interactivity.
+
+The frontend has complex behavior to provide interactive experience. This module implements the behavior.
+"""
 import curses
 from abc import abstractmethod, ABC
 
 from frontend.presenter import Presenter
 from frontend.window import MenuWindow, ToolsWindow, InputWindow, PromptWindow, RulerWindow, CanvasWindow, \
-    CanvasInnerWindow, InputInnerWindow, PromptInnerWindow, PaletteInnerWindow
+    CanvasInnerWindow, InputInnerWindow, PromptInnerWindow, PaletteInnerWindow, WindowCalculator
 from frontend.initial_data import (canvas_group, temporary_group, palette_group, predefined_square,
                                    predefined_z_shape, predefined_smiley)
 
@@ -20,6 +24,28 @@ class ViewABC(ABC):
 
 
 class View(ViewABC):
+    """Contains all the functionalities for the frontend.
+
+    This class initiates the creation of the user interface, initiates the predefined data,
+    and awaits user input.
+    It also creates the presenter object that handles the connection to the backend.
+
+    Attributes:
+        menu_window (None/curses window): Menu window.
+        tools_window (None/curses window): Tools window.
+        ruler_window (None/curses window) = Ruler in x and y direction.
+        canvas_window (None/curses window) = Frame for canvas_inner_window.
+        prompt_window (None/curses window) = Frame for prompt_inner_window.
+        input_window (None/curses window) = Frame for input_inner_window.
+
+        palette_inner_window (None/curses window) = Display of available drawing elements.
+        canvas_inner_window (None/curses window) = Main drawing window.
+        prompt_inner_window (None/curses window) = Information and prompt messages appear here.
+        input_inner_window (None/curses window) = Captures user input.
+
+        tools_window_content (dict): Makes the content available for highlighting.
+        reference_point (None/tuple): Contains the reference point coordinates.
+    """
 
     def __init__(self):
         self.presenter = Presenter(self)
@@ -41,10 +67,16 @@ class View(ViewABC):
         # variables
         self.reference_point = None
 
-    # -------------------MVP--------------------------------------------------------
+# -------------------MVP-part---------------------------------------------------
 
     def update_ui(self, update_window, entries):
-        # functions loading and updating windows from tuples/lists with data
+        """ Receives information prom the presenter ready to be displayed.
+        Parameters:
+            update_window (curses window): window to receive the update.
+            entries: (list): update data.
+        Returns:
+            None
+        """
 
         # check which window is the data ment for
         window = None
@@ -74,8 +106,16 @@ class View(ViewABC):
     @staticmethod
     def add_string(window, y, x, symbol, parameter=None):
         """Input verification to avoid software crash.
-            Only round numbers are accepted by curses.
-            Only entries within the canvas are acceptable
+
+        Only integer numbers are accepted by curses.
+        Only entries within the canvas are acceptable.
+
+        Args:
+            window (curses window): Used to determine available space for placing elements on the screen.
+            x (int/float): Element position in x direction.
+            y (int/float): Element position in y direction.
+            symbol (str): Element symbol to be placed on canvas.
+            parameter (curses command): Highlight or Reverse displayed symbol.
         """
         height, width = window.getmaxyx()
 
@@ -87,19 +127,28 @@ class View(ViewABC):
             if round(x) in range(0, width) and round(y) in range(0, height):
                 window.addstr(round(y), round(x), symbol)
 
-    # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
     def highlight_tool(self, tool):
+        """Highlights content in the tools window.
+        Args:
+            tool (string): A key to call content from the tool window entries.
+        """
         content = self.tools_window_content[tool]
         self.tools_window.addstr(*content, curses.A_STANDOUT)
         self.tools_window.refresh()
 
     def play_down_tool(self, tool):
+        """Removes highlight from content in the tools window.
+        Args:
+            tool (string): A key to call content from the tool window entries.
+        """
         content = self.tools_window_content[tool]
         self.tools_window.addstr(*content)
         self.tools_window.refresh()
 
     def canvas_to_reference_point(self, x, y):
-        """Marks amd remembers the reference point.
+        """Marks and remembers the reference point.
 
         Multiple attempts are possible, only the last one is valid.
 
@@ -347,16 +396,16 @@ class View(ViewABC):
     def mirror(self):
         """Mirrors selected elements and groups.
 
-                Allows navigation to a position, selection of elements or groups on the canvas multiple times
-                until interrupted
-                by the user, entry of three possible mirror options. The selected elements are automatically mirrored
-                on exit from the command. Dynamic prompts and relevant highlighting guide the user.
+        Allows navigation to a position, selection of elements or groups on the canvas multiple times
+        until interrupted
+        by the user, entry of three possible mirror options. The selected elements are automatically mirrored
+        on exit from the command. Dynamic prompts and relevant highlighting guide the user.
 
-                Args:
+        Args:
 
-                Returns:
-                    None
-                """
+        Returns:
+            None
+        """
         self.highlight_tool("mirror")
 
         # selection
@@ -517,32 +566,42 @@ class View(ViewABC):
         self.play_down_tool("clear")
 
     def initiate_windows(self, height, width):
+        """Creates all sub windows.
 
+        Args:
+            height (int): Available vertical space.
+            width (int): Available horizontal space.
+        Returns:
+            None
+        """
         # calculates window sizes based on the available pixels in the terminal
-        # WindowCalculator(height, width).calculate_split()
+        window_calculator = WindowCalculator()
+        window_calculator.set_max_size(height, width)
+        window_calculator.calculate_split()
 
         # windows
-        self.menu_window = MenuWindow(width).create()
-        self.tools_window = ToolsWindow(height).create()
-        self.tools_window_content = ToolsWindow(height).position_content()
-        self.ruler_window = RulerWindow(height, width).create()
-        self.canvas_window = CanvasWindow(height, width).create()
-        self.prompt_window = PromptWindow(height, width).create()
-        self.input_window = InputWindow(height, width).create()
+        self.menu_window = MenuWindow(window_calculator).create()
+        self.tools_window = ToolsWindow(window_calculator).create()
+        self.tools_window_content = ToolsWindow(window_calculator).position_content()
+        self.ruler_window = RulerWindow(window_calculator).create()
+        self.canvas_window = CanvasWindow(window_calculator).create()
+        self.prompt_window = PromptWindow(window_calculator).create()
+        self.input_window = InputWindow(window_calculator).create()
 
         # inner windows
-        self.palette_inner_window = PaletteInnerWindow().create()
-
-        canvas_height, canvas_width = self.canvas_window.getmaxyx()
-        self.canvas_inner_window = CanvasInnerWindow(canvas_height, canvas_width).create()
-
-        prompt_nlines, prompt_ncols = self.prompt_window.getmaxyx()
-        self.prompt_inner_window = PromptInnerWindow(prompt_nlines, prompt_ncols, height).create()
-
-        input_height, input_width = self.input_window.getmaxyx()
-        self.input_inner_window = InputInnerWindow(input_height, input_width, height).create()
+        self.palette_inner_window = PaletteInnerWindow(window_calculator).create()
+        self.canvas_inner_window = CanvasInnerWindow(window_calculator).create()
+        self.prompt_inner_window = PromptInnerWindow(window_calculator).create()
+        self.input_inner_window = InputInnerWindow(window_calculator).create()
 
     def create_main_loop(self, stdscr):
+        """Initiates windows creation, loads data, waits for user input.
+
+        Args:
+            stdscr (curses window): An initial window provided by curses that spans over the entire available space.
+        Returns:
+            None
+        """
 
         # stdscr is the complete size of the terminal, all available pixels on the screen
         stdscr.clear()

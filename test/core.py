@@ -1,5 +1,5 @@
 from backend.core import Element, Group, Canvas
-from backend.memento import History
+from frontend.memento import History
 from backend.transformer import CartesianTransformer
 
 transformer = CartesianTransformer()

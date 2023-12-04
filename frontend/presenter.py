@@ -1,3 +1,8 @@
+"""Provide connection between the frontend and backend.
+
+Complex manipulations of data are sent to the backend. Simpler manipulations are handled in the presenter.
+The result is sent as simplified data to the frontend.
+"""
 from abc import ABC, abstractmethod
 
 from backend.core import Group, Element
@@ -17,6 +22,17 @@ class PresenterABC(ABC):
 
 
 class Presenter(PresenterABC):
+    """Receives information from the frontend and returns it after calculations are done.
+
+    Attributes:
+        canvas_group (None/Group): Group that contains the elements currently on the canvas.
+        temporary_group (None/Group): Group that contains elements during manipulation.
+        palette_group (None/Group): Preset elements to chose from.
+        predefined_shapes (dict): Preset shapes to import on the canvas.
+        reference_point (None/tuple): User chosen coordinates as reference for transformations.
+        canvas_entries (list): Simplified element data to be used by the view-module.
+        palette_entries (list): Simplified element data to be used by the view-module.
+    """
 
     def __init__(self, view):
         self.view = view
@@ -39,7 +55,12 @@ class Presenter(PresenterABC):
     def receive_user_input(self, component, command,  command_values):
         """Used by view
 
-        The view calls this method to activate commands used on elements/groups
+        The view calls this method to activate commands used on elements/group.
+
+        Args:
+            component (Group): Group to be manipulated in the backend.
+            command (str): Transformation type.
+            command_values: Data needed for the specific transformation.
         """
 
         if command == "move":
@@ -47,16 +68,19 @@ class Presenter(PresenterABC):
             move_command = MoveCommand(component, delta_x, delta_y)
             move_command.attach(self)
             move_command.execute()
+
         elif command == "rotate":
             theta, reference_point = command_values
             transformer.set_reference(*reference_point)
             rotate_command = RotateCommand(component, theta)
             rotate_command.execute()
+
         elif command == "mirror":
             direction, reference_point = command_values
             transformer.set_reference(*reference_point)
             mirror_command = MirrorCommand(component, direction)
             mirror_command.execute()
+
         elif command == "scale":
             scale_x, scale_y, reference_point = command_values
             transformer.set_reference(*reference_point)
@@ -134,7 +158,7 @@ class Presenter(PresenterABC):
                 new_group.add(new_element)
             self.canvas_group.add(new_group)
 
-    def canvas_to_temp(self, x, y):                                     # let view manage highlighting
+    def canvas_to_temp(self, x, y):
         """Move elements and groups from canvas to temporary group.
 
         Allows selection and highlight of multiple elements. The selected elements are temporary taken out of the

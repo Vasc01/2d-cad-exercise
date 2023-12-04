@@ -1,8 +1,7 @@
-"""A middle layer between the frontend and the backend
+"""A middle layer between the presenter and the backend
 
-This module provides single point of communication with the backend. On the side of the frontend there can be
-multiple references to classes in this module. For example a command can be activated with keyboard
-shortcut or by pressing a button wit the mouse -  they both will address the same class here.
+This module provides single point of communication with the backend. It returns information to the presenter
+after execution of the command.
 """
 
 
@@ -33,6 +32,13 @@ class Command(ABC):
 
 
 class MoveCommand(Command):
+    """Executes the move transformation.
+
+    Attributes:
+        component (Element/Group): Transformation is performed on this Element/Group
+        delta_x (int): Relative movement in x-direction.
+        delta_y (int): Relative movement in y-direction.
+    """
 
     def __init__(self, component, delta_x, delta_y):
         self.component = component
@@ -45,6 +51,12 @@ class MoveCommand(Command):
 
 
 class RotateCommand(Command):
+    """Executes the rotate transformation.
+
+    Attributes:
+        component (Element/Group): Transformation is performed on this Element/Group
+        theta (int): Angle of rotation.
+    """
 
     def __init__(self, component, theta):
         self.component = component
@@ -56,6 +68,12 @@ class RotateCommand(Command):
 
 
 class MirrorCommand(Command):
+    """Executes the mirror transformation.
+
+    Attributes:
+        component (Element/Group): Transformation is performed on this Element/Group
+        axis (int): Mirror direction.
+    """
 
     def __init__(self, component, axis):
         self.component = component
@@ -67,6 +85,13 @@ class MirrorCommand(Command):
 
 
 class ScaleCommand(Command):
+    """Executes the scale transformation.
+
+    Attributes:
+        component (Element/Group): Transformation is performed on this Element/Group
+        factor_x (int): Scale factor in x direction.
+        factor_y (int): Scale factor in y direction.
+    """
 
     def __init__(self, component, factor_x, factor_y):
         self.component = component

@@ -1,5 +1,4 @@
-from backend.core import Element, Group, Canvas
-from backend.memento import History
+from backend.core import Element, Group
 from backend.transformer import CartesianTransformer
 from frontend.command import MoveCommand
 
